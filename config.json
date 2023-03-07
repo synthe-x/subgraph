@@ -1,0 +1,16 @@
+{
+    "address": "0xD6252ae9801d7adC9c3a1cB59C2aC67a31F69B89",
+    "start": 9829816,
+    "pools": [
+        {
+            "name": "Crypto Market",
+            "start": 9829900,
+            "address": "0xFA939f4a6c7E44ED134313BcaDe92e5A2fD0C80a"
+        },
+        {
+            "name": "Foreign Exchange",
+            "start": 9830212,
+            "address": "0xF252B4743FdD18BbAb89189D804F38316620B461"
+        }
+    ]
+}

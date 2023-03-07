@@ -1,0 +1,186 @@
+specVersion: 0.0.2
+schema:
+  file: schema.graphql
+dataSources:
+  - kind: ethereum
+    name: SyntheX
+    network: arbitrum-goerli
+    source:
+      address: "0xD6252ae9801d7adC9c3a1cB59C2aC67a31F69B89"
+      startBlock: 9829816
+      abi: SyntheX
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - AddressUpdated
+        - AdminChanged
+        - BeaconUpgraded
+        - DistributedReward
+        - Initialized
+        - Paused
+        - RoleAdminChanged
+        - RoleGranted
+        - RoleRevoked
+        - SetPoolRewardSpeed
+        - Unpaused
+        - Upgraded
+      abis:
+        - name: SyntheX
+          file: SyntheX/abis/SyntheX.json
+        - name: PriceOracle
+          file: SyntheX/abis/PriceOracle.json
+        - name: ERC20
+          file: SyntheX/abis/ERC20.json
+        - name: Pool
+          file: SyntheX/abis/Pool.json
+      eventHandlers:
+        - event: DistributedReward(address[],indexed address,address,uint256[],uint256[])
+          handler: handleDistributedReward
+        - event: Paused(address)
+          handler: handlePaused
+        - event: SetPoolRewardSpeed(indexed address,indexed address,uint256)
+          handler: handleSetPoolRewardSpeed
+        - event: Unpaused(address)
+          handler: handleUnpaused
+      file: SyntheX/SyntheX.wasm
+  - kind: ethereum
+    name: Crypto Market
+    network: arbitrum-goerli
+    source:
+      address: "0xFA939f4a6c7E44ED134313BcaDe92e5A2fD0C80a"
+      startBlock: 9829900
+      abi: Pool
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - SynthUpdated
+        - SynthRemoved
+        - CollateralParamsUpdated
+        - CollateralEntered
+        - CollateralExited
+        - Paused
+        - Unpaused
+        - Deposit
+        - Withdraw
+        - IssuerAllocUpdated
+        - IssuerPriceOracleUpdated
+        - FeeTokenUpdated
+        - Transfer
+      abis:
+        - name: Pool
+          file: Crypto Market/abis/Pool.json
+        - name: PriceOracle
+          file: Crypto Market/abis/PriceOracle.json
+        - name: ERC20
+          file: Crypto Market/abis/ERC20.json
+      eventHandlers:
+        - event: SynthUpdated(indexed address,bool,uint256,uint256)
+          handler: handleSynthUpdated
+        - event: SynthRemoved(indexed address)
+          handler: handleSynthRemoved
+        - event: CollateralParamsUpdated(indexed
+            address,uint256,uint256,uint256,uint256,uint256,bool)
+          handler: handleCollateralParamsUpdated
+        - event: CollateralEntered(indexed address,indexed address)
+          handler: handleCollateralEntered
+        - event: CollateralExited(indexed address,indexed address)
+          handler: handleCollateralExited
+        - event: Deposit(indexed address,indexed address,uint256)
+          handler: handleDeposit
+        - event: Withdraw(indexed address,indexed address,uint256)
+          handler: handleWithdraw
+        - event: IssuerAllocUpdated(uint256)
+          handler: handleIssuerAllocUpdated
+        - event: PriceOracleUpdated(indexed address)
+          handler: handlePriceOracleUpdated
+        - event: FeeTokenUpdated(indexed address)
+          handler: handleFeeTokenUpdated
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: Crypto Market/Crypto Market.wasm
+  - kind: ethereum
+    name: Foreign Exchange
+    network: arbitrum-goerli
+    source:
+      address: "0xF252B4743FdD18BbAb89189D804F38316620B461"
+      startBlock: 9830212
+      abi: Pool
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - SynthUpdated
+        - SynthRemoved
+        - CollateralParamsUpdated
+        - CollateralEntered
+        - CollateralExited
+        - Paused
+        - Unpaused
+        - Deposit
+        - Withdraw
+        - IssuerAllocUpdated
+        - IssuerPriceOracleUpdated
+        - FeeTokenUpdated
+        - Transfer
+      abis:
+        - name: Pool
+          file: Foreign Exchange/abis/Pool.json
+        - name: PriceOracle
+          file: Foreign Exchange/abis/PriceOracle.json
+        - name: ERC20
+          file: Foreign Exchange/abis/ERC20.json
+      eventHandlers:
+        - event: SynthUpdated(indexed address,bool,uint256,uint256)
+          handler: handleSynthUpdated
+        - event: SynthRemoved(indexed address)
+          handler: handleSynthRemoved
+        - event: CollateralParamsUpdated(indexed
+            address,uint256,uint256,uint256,uint256,uint256,bool)
+          handler: handleCollateralParamsUpdated
+        - event: CollateralEntered(indexed address,indexed address)
+          handler: handleCollateralEntered
+        - event: CollateralExited(indexed address,indexed address)
+          handler: handleCollateralExited
+        - event: Deposit(indexed address,indexed address,uint256)
+          handler: handleDeposit
+        - event: Withdraw(indexed address,indexed address,uint256)
+          handler: handleWithdraw
+        - event: IssuerAllocUpdated(uint256)
+          handler: handleIssuerAllocUpdated
+        - event: PriceOracleUpdated(indexed address)
+          handler: handlePriceOracleUpdated
+        - event: FeeTokenUpdated(indexed address)
+          handler: handleFeeTokenUpdated
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: Crypto Market/Crypto Market.wasm
+templates:
+  - kind: ethereum
+    name: Synth
+    network: arbitrum-goerli
+    source:
+      abi: Synth
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      abis:
+        - name: Synth
+          file: Synth/abis/Synth.json
+        - name: PriceOracle
+          file: Synth/abis/PriceOracle.json
+        - name: ERC20
+          file: Synth/abis/ERC20.json
+        - name: Pool
+          file: Synth/abis/Pool.json
+      entities:
+        - Transfer
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: templates/Synth/Synth.wasm

@@ -20,11 +20,15 @@ type Pool @entity {
   
   # Params
   feeToken: String!
-  issuerAlloc: Int!
+  issuerAlloc: BigInt!
   oracle: String!
   paused: Boolean!
   totalSupply: BigInt!
-  totalDebtUSD: BigInt!
+  totalDebtUSD: BigDecimal!
+
+  "Total revenue and burn by the pool"
+  totalRevenueUSD: BigDecimal!
+  totalBurnUSD: BigDecimal!
 
   # Assets
   synthIds: [String!]!
@@ -38,19 +42,56 @@ type PoolDayData @entity {
   dayId: Int!
   pool: Pool!
 
+  "Daily debt issued in USD"
+  dailyDebtIssuedUSD: BigDecimal!
+  dailyDebtBurnedUSD: BigDecimal!
+
+  "Snapshot of the total debt in USD"
+  totalDebtUSD: BigDecimal!
+  "Snapshot of the total supply of the pool"
+  totalSupply: BigInt!
+
+  "Daily revenue collected from fees"
+  dailyRevenueUSD: BigDecimal!
+  "Debt burned from revenue fees"
+  dailyBurnUSD: BigDecimal!
+
+  "Total revenue fees collected by the pool"
+  totalRevenueUSD: BigDecimal!
+  "Total debt burned from revenue fees"
+  totalBurnUSD: BigDecimal!
+}
+
+type CollateralDayData @entity {
+  id: ID!
+  dayId: Int!
+  collateral: Collateral!
+
+  "Daily deposits"
+  dailyDeposits: BigInt!
+  "Daily withdrawals"
+  dailyWithdrawals: BigInt!
+
+  cumulativeDeposits: BigInt!
+  cumulativeWithdrawals: BigInt!
+  totalDeposits: BigInt!
+}
+
+type SynthDayData @entity {
+  id: ID!
+  dayId: Int!
+  synth: Synth!
+
   ## Activity
-  dailyDepositsUSD: BigInt!
-  dailyWithdrawalsUSD: BigInt!
-  dailyMintedUSD: BigInt!
-  dailyBurnedUSD: BigInt!
+  dailyMinted: BigInt!
+  dailyBurned: BigInt!
 
   ## Total by end of the day
-  totalDeposits: BigInt!
-  totalDebtUSD: BigInt!
+  cumulativeMinted: BigInt!
+  cumulativeBurned: BigInt!
 
-  ## Revenue
-  dailyRevenueUSD: BigInt!
-  totalRevenueUSD: BigInt!
+  ## Total Supply by end of the day
+  totalSupply: BigInt!
 }
 
 type Synth @entity {
@@ -62,23 +103,14 @@ type Synth @entity {
   burnFee: BigInt!
   token: Token!
 
-  ## Price Data
-  priceUSD: BigInt!
-  lastPriceUpdate: Int!
-}
-
-type SynthDayData @entity {
-  id: ID!
-  dayId: Int!
-  synth: Synth!
-
   ## Activity
-  dailyMintedUSD: BigInt!
-  dailyBurnedUSD: BigInt!
+  cumulativeMinted: BigInt!
+  cumulativeBurned: BigInt!
+  totalSupply: BigInt!
 
-  ## Total by end of the day
-  totalMinted: BigInt!
-  totalBurned: BigInt!
+  ## Price Data
+  priceUSD: BigDecimal!
+  lastPriceUpdate: Int!
 }
 
 type Collateral @entity {
@@ -90,33 +122,21 @@ type Collateral @entity {
   ## Params
   isEnabled: Boolean!
   cap: BigInt!
-  totalDeposits: BigInt! 
   baseLTV: Int!
   liqThreshold: Int!
   liqBonus: Int!
-  liqProtocolFee: Int!
+
+  totalDeposits: BigInt! 
+  cumulativeDeposits: BigInt!
+  cumulativeWithdrawals: BigInt!
 
   totalPositions: Int!
   cumulativeEnteredPositions: Int!
   cumulativeExitedPositions: Int!
 
   ## Price Data
-  priceUSD: BigInt!
+  priceUSD: BigDecimal!
   lastPriceUpdate: Int!
-}
-
-type CollateralDayData @entity {
-  id: ID!
-  dayId: Int!
-  collateral: Collateral!
-
-  ## Activity
-  dailyDepositsUSD: BigInt!
-  dailyWithdrawalsUSD: BigInt!
-
-  ## Total by end of the day
-  totalDeposits: BigInt!
-  totalWithdrawals: BigInt!
 }
 
 type Account @entity {
@@ -148,5 +168,4 @@ type Token @entity {
   name: String!
   symbol: String!
   decimals: Int!
-  totalSupply: BigInt!
 }

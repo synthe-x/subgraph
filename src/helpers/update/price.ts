@@ -1,19 +1,19 @@
-import { Address, BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import { PriceOracle } from "../../../generated/SyntheX/PriceOracle";
 import { Pool, Token, Collateral, Synth } from '../../../generated/schema';
-import { ADDRESS_ZERO, ZERO_BI } from '../const';
+import { ADDRESS_ZERO, ZERO_BI, PRICE_DECIMALS, ZERO_BD } from '../const';
 
-export function getTokenPrice(token: Token, pool: Pool): BigInt {
+export function getTokenPrice(token: Token, pool: Pool): BigDecimal {
     const oracle = pool.oracle;
-    if(oracle == ADDRESS_ZERO.toHex()) return ZERO_BI;
+    if(oracle == ADDRESS_ZERO.toHex()) return ZERO_BD;
     const oracleContract = PriceOracle.bind(Address.fromString(oracle));
     const price = oracleContract.try_getAssetPrice(
         Address.fromString(token.id)
     );
     if (!price.reverted) {
-        return price.value;
+        return price.value.toBigDecimal().div(PRICE_DECIMALS.toBigDecimal());
     } else {
-        return ZERO_BI;
+        return ZERO_BD;
     }
 }
 

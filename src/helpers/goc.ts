@@ -1,4 +1,4 @@
-import { Address, Bytes, BigInt } from "@graphprotocol/graph-ts";
+import { Address, Bytes, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import {
 	Pool,
 	Protocol,
@@ -9,10 +9,11 @@ import {
 	AccountBalance,
 	Token,
 } from "../../generated/schema";
-import { ADDRESS_ZERO, ONE_BI, ZERO_BI, ETH_ADDRESS } from "./const";
+import { ADDRESS_ZERO, ONE_BI, ZERO_BI, ETH_ADDRESS, ZERO_BD } from './const';
 import { ERC20 } from "../../generated/Crypto Market/ERC20";
 
 import { Synth as SynthTemplate } from "../../generated/templates";
+import { PoolDayData, SynthDayData, CollateralDayData } from '../../generated/schema';
 
 export function gocProtocol(): Protocol {
 	let protocol = Protocol.load("1");
@@ -31,14 +32,18 @@ export function gocPool(id: string): Pool {
 	let pool = Pool.load(id);
 	if (pool == null) {
 		pool = new Pool(id);
-		pool.paused = false;
-		pool.feeToken = ADDRESS_ZERO.toHex();
-		pool.totalSupply = ZERO_BI;
 		pool.protocol = "1";
+
+		pool.feeToken = ADDRESS_ZERO.toHex();
+		pool.issuerAlloc = ZERO_BI;
+		pool.oracle = ADDRESS_ZERO.toHex();
+		pool.paused = false;
+
+		pool.totalSupply = ZERO_BI;
+		pool.totalDebtUSD = ZERO_BD;
+
 		pool.rewardTokens = new Array<string>();
 		pool.rewardSpeeds = new Array<BigInt>();
-		pool.oracle = ADDRESS_ZERO.toHex();
-		pool.totalDebtUSD = ZERO_BI;
 		pool.synthIds = new Array<string>();
 
 		const poolContract = ERC20.bind(Address.fromString(id));
@@ -65,8 +70,12 @@ export function gocSynth(id: string, pool: Pool|null = null): Synth {
 		synth.mintFee = ZERO_BI;
 		synth.burnFee = ZERO_BI;
 		synth.token = gocToken(id).id;
-		synth.priceUSD = ZERO_BI;
+		synth.priceUSD = ZERO_BD;
 		synth.lastPriceUpdate = 0;
+
+		synth.cumulativeMinted = ZERO_BI;
+		synth.cumulativeBurned = ZERO_BI;
+		synth.totalSupply = ZERO_BI;
 
 		if(pool){
 			let _synthIds = pool.synthIds;
@@ -87,7 +96,6 @@ export function gocToken(id: string): Token {
 		token.name = "Unknown Token Name";
 		token.symbol = "UNKNOWN";
 		token.decimals = 18;
-		token.totalSupply = ZERO_BI;
 
 		if (id == ETH_ADDRESS.toHex()) {
 			token.name = "Ethereum";
@@ -107,10 +115,6 @@ export function gocToken(id: string): Token {
 			if (!decimals.reverted) {
 				token.decimals = decimals.value;
 			}
-			const totalSupply = tokenContract.try_totalSupply();
-			if (!totalSupply.reverted) {
-				token.totalSupply = totalSupply.value;
-			}
 		}
 
 		token.save();
@@ -125,13 +129,18 @@ export function gocCollateral(id: string, pool: Pool): Collateral {
 		collateral = new Collateral(_id);
 		collateral.pool = pool.id;
 		collateral.token = gocToken(id).id;
+
+		collateral.isEnabled = false;
 		collateral.cap = ZERO_BI;
-		collateral.totalDeposits = ZERO_BI;
 		collateral.baseLTV = 0;
 		collateral.liqThreshold = 0;
 		collateral.liqBonus = 0;
-		collateral.liqProtocolFee = 0;
-		collateral.priceUSD = ZERO_BI;
+
+		collateral.totalDeposits = ZERO_BI;
+		collateral.cumulativeDeposits = ZERO_BI;
+		collateral.cumulativeWithdrawals = ZERO_BI;
+
+		collateral.priceUSD = ZERO_BD;
 		collateral.lastPriceUpdate = 0;
 
 		let _collateralIds = pool.collateralIds;
@@ -181,4 +190,77 @@ export function gocAccountBalance(
 		accountBalance.save();
 	}
 	return accountBalance as AccountBalance;
+}
+
+export function gocPoolDayData(
+	pool: Pool,
+	event: ethereum.Event,
+): PoolDayData { 
+	let id = pool.id + "-" + (event.block.timestamp.toI32() / 86400).toString();
+	let poolDayData = PoolDayData.load(id);
+	if (poolDayData == null) {
+		poolDayData = new PoolDayData(id);
+		poolDayData.pool = pool.id;
+		poolDayData.dayId = event.block.timestamp.toI32() / 86400;
+		poolDayData.totalDebtUSD = ZERO_BD;
+		poolDayData.totalSupply = ZERO_BI;
+		poolDayData.dailyRevenueUSD = ZERO_BD;
+		poolDayData.dailyBurnUSD = ZERO_BD;
+		poolDayData.totalRevenueUSD = ZERO_BD;
+		poolDayData.totalBurnUSD = ZERO_BD;
+		poolDayData.save();
+	}
+	poolDayData.totalSupply = pool.totalSupply;
+	poolDayData.totalDebtUSD = pool.totalDebtUSD;
+	poolDayData.totalRevenueUSD = pool.totalRevenueUSD;
+	poolDayData.totalBurnUSD = pool.totalBurnUSD;
+	return poolDayData as PoolDayData;
+}
+
+export function gocSynthDayData(
+	synth: Synth,
+	event: ethereum.Event,
+): SynthDayData {
+	let id = synth.id + "-" + (event.block.timestamp.toI32() / 86400).toString();
+	let synthDayData = SynthDayData.load(id);
+	if (synthDayData == null) {
+		synthDayData = new SynthDayData(id);
+		synthDayData.synth = synth.id;
+		synthDayData.dayId = event.block.timestamp.toI32() / 86400;
+		synthDayData.totalSupply = ZERO_BI;
+		synthDayData.cumulativeMinted = ZERO_BI;
+		synthDayData.cumulativeBurned = ZERO_BI;
+		synthDayData.dailyMinted = ZERO_BI;
+		synthDayData.dailyBurned = ZERO_BI;
+		synthDayData.save();
+	}
+	synthDayData.totalSupply = synth.totalSupply;
+	synthDayData.cumulativeMinted = synth.cumulativeMinted;
+	synthDayData.cumulativeBurned = synth.cumulativeBurned;
+
+	return synthDayData as SynthDayData;
+}
+
+export function gocCollateralDayData(
+	collateral: Collateral,
+	event: ethereum.Event,
+): CollateralDayData {
+	let id = collateral.id + "-" + (event.block.timestamp.toI32() / 86400).toString();
+	let collateralDayData = CollateralDayData.load(id);
+	if (collateralDayData == null) {
+		collateralDayData = new CollateralDayData(id);
+		collateralDayData.collateral = collateral.id;
+		collateralDayData.dayId = event.block.timestamp.toI32() / 86400;
+		collateralDayData.totalDeposits = ZERO_BI;
+		collateralDayData.dailyDeposits = ZERO_BI;
+		collateralDayData.dailyWithdrawals = ZERO_BI;
+		collateralDayData.cumulativeDeposits = ZERO_BI;
+		collateralDayData.cumulativeWithdrawals = ZERO_BI;
+		collateralDayData.save();
+	}
+	collateralDayData.totalDeposits = collateral.totalDeposits;
+	collateralDayData.cumulativeDeposits = collateral.cumulativeDeposits;
+	collateralDayData.cumulativeWithdrawals = collateral.cumulativeWithdrawals;
+
+	return collateralDayData as CollateralDayData;
 }

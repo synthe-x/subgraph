@@ -51,6 +51,9 @@ export function gocPool(id: string): Pool {
 		pool.rewardTokens = new Array<string>();
 		pool.rewardSpeeds = new Array<BigInt>();
 		pool.synthIds = new Array<string>();
+		pool.collateralIds = new Array<string>();
+		pool.totalRevenueUSD = ZERO_BD;
+		pool.totalBurnUSD = ZERO_BD;
 
 		const poolContract = ERC20.bind(Address.fromString(id));
 		const name = poolContract.try_name();
@@ -134,14 +137,16 @@ export function gocCollateral(id: string, pool: Pool): Collateral {
 	let collateral = Collateral.load(_id);
 	if (collateral == null) {
 		collateral = new Collateral(_id);
-		// collateral.pool = pool.id;
+		collateral.pool = pool.id;
 		collateral.token = gocToken(id).id;
 
 		collateral.isActive = true;
 		collateral.cap = ZERO_BI;
 		collateral.baseLTV = 0;
 		collateral.liqThreshold = 0;
-		
+		collateral.totalPositions = 0;
+		collateral.cumulativeEnteredPositions = 0;
+		collateral.cumulativeExitedPositions = 0;
 
 		collateral.totalDeposits = ZERO_BI;
 		collateral.cumulativeDeposits = ZERO_BI;
@@ -165,7 +170,7 @@ export function gocAccount(id: string): Account {
 		account.totalPoint = ZERO_BD;
 		account.totalMintUSD = ZERO_BD;
 		account.totalBurnUSD = ZERO_BD;
-		account.referredBy= ADDRESS_ZERO.toString();
+		account.referredBy = ADDRESS_ZERO.toString();
 		account.save();
 	}
 	return account as Account;
@@ -200,6 +205,7 @@ export function gocAccountBalance(
 		accountBalance.accountPosition = accountPosition;
 		accountBalance.collateral = collateral;
 		accountBalance.balance = ZERO_BI;
+		accountBalance.hasEntered = true;
 		accountBalance.save();
 	}
 	return accountBalance as AccountBalance;
@@ -221,6 +227,8 @@ export function gocPoolDayData(
 		poolDayData.dailyBurnUSD = ZERO_BD;
 		poolDayData.totalRevenueUSD = ZERO_BD;
 		poolDayData.totalBurnUSD = ZERO_BD;
+		poolDayData.dailyDebtIssuedUSD = ZERO_BD;
+		poolDayData.dailyDebtBurnedUSD = ZERO_BD;
 		poolDayData.save();
 	}
 	poolDayData.totalSupply = pool.totalSupply;
@@ -286,6 +294,7 @@ export function gocBorrow
 	let borrow = Borrow.load(id);
 	if (borrow == null) {
 		borrow = new Borrow(id);
+		borrow.amount = ZERO_BD;
 		borrow.accountPosition = accountPosition;
 		borrow.totalSupply = ZERO_BD;
 		borrow.totalDebtUSD = ZERO_BD;
@@ -302,6 +311,7 @@ export function gocRepay
 	let repay = Repay.load(id);
 	if (repay == null) {
 		repay = new Repay(id);
+		repay.amount = ZERO_BD;
 		repay.accountPosition = accountPosition;
 		repay.totalSupply = ZERO_BD;
 		repay.totalDebtUSD = ZERO_BD;

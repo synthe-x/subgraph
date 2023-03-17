@@ -216,7 +216,7 @@ function handleMint(event: Transfer): void {
    
     pool = updatePoolDebt(pool);
     let poolDayData = gocPoolDayData(pool, event);
-    poolDayData.dailyDebtIssuedUSD = poolDayData.dailyDebtIssuedUSD.plus(amountUSD);
+    poolDayData.dailyDebtIssuedUSD = poolDayData.dailyDebtIssuedUSD.plus(event.params.value.toBigDecimal().div(pool.totalSupply.toBigDecimal()).times(pool.totalDebtUSD));
     poolDayData.save();
     pool.save();
 

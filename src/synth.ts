@@ -1,6 +1,6 @@
 import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import { Transfer } from "../generated/Crypto Market/ERC20";
-import { ADDRESS_ZERO, BASIS_POINTS, PRICE_DECIMALS, BASIS_POINTS_BD, rate } from './helpers/const';
+import { ADDRESS_ZERO, BASIS_POINTS, PRICE_DECIMALS, BASIS_POINTS_BD, rate, TO_ETH_BD } from './helpers/const';
 import { gocToken, gocSynth, gocPool, gocPoolDayData, gocAccount, gocSynthDayData, gocMint, gocBurn, gocAccountDayData } from './helpers/goc';
 import { updatePoolDebt } from "./helpers/update/debt";
 import { getTokenPrice, updatePoolPrices } from './helpers/update/price';
@@ -25,19 +25,25 @@ function handleMint(event: Transfer): void {
     let poolDayData = gocPoolDayData(pool, event);
     let synthDayData = gocSynthDayData(synth, event);
 
-    const revenueUSD = event.params.value.times(synth.mintFee).toBigDecimal().times(synth.priceUSD).div(BASIS_POINTS_BD);
-    const feeBurnUSD = event.params.value.times(synth.mintFee).times(pool.issuerAlloc).toBigDecimal().times(synth.priceUSD).div(BASIS_POINTS_BD).div(BASIS_POINTS_BD);
+    const revenueUSD = event.params.value.times(synth.mintFee).toBigDecimal().times(synth.priceUSD).div(BASIS_POINTS_BD).div(TO_ETH_BD);
+    const feeBurnUSD = event.params.value.times(synth.mintFee).times(pool.issuerAlloc).toBigDecimal().times(synth.priceUSD).div(BASIS_POINTS_BD).div(BASIS_POINTS_BD).div(TO_ETH_BD);
+
+    pool.totalRevenueUSD = pool.totalRevenueUSD.plus(revenueUSD);
+    pool.totalBurnUSD = pool.totalBurnUSD.plus(feeBurnUSD);
+
     poolDayData.dailyRevenueUSD = poolDayData.dailyRevenueUSD.plus(revenueUSD);
     poolDayData.dailyBurnUSD = poolDayData.dailyBurnUSD.plus(feeBurnUSD);
+    poolDayData.totalRevenueUSD = pool.totalRevenueUSD;
+    poolDayData.totalBurnUSD = pool.totalBurnUSD;
 
     synthDayData.dailyMinted = synthDayData.dailyMinted.plus(event.params.value);
 
     let mint = gocMint(event, synth.id, event.params.to.toHex());
-    mint.amount = event.params.value.toBigDecimal().div(BigDecimal.fromString("1000000000000000000"));
+    mint.amount = event.params.value.toBigDecimal().div(TO_ETH_BD);
     mint.priceUSD = synth.priceUSD;
 
     let account = gocAccount(event.params.to.toHex());
-    let newPoint = event.params.value.toBigDecimal().div(BigDecimal.fromString("1000000000000000000")).times(synth.priceUSD).times(rate(event.block.timestamp.toBigDecimal()));
+    let newPoint = event.params.value.toBigDecimal().div(TO_ETH_BD).times(synth.priceUSD).times(rate(event.block.timestamp.toBigDecimal()));
     account.totalPoint = account.totalPoint.plus(newPoint);
     account.totalMintUSD = account.totalMintUSD.plus(mint.amount.times(synth.priceUSD));
 
@@ -67,19 +73,25 @@ function handleBurn(event: Transfer): void {
     let poolDayData = gocPoolDayData(pool, event);
     let synthDayData = gocSynthDayData(synth, event);
 
-    const revenueUSD = event.params.value.times(synth.burnFee).toBigDecimal().times(synth.priceUSD).div(BASIS_POINTS_BD);
-    const feeBurnUSD = event.params.value.times(synth.burnFee).times(pool.issuerAlloc).toBigDecimal().times(synth.priceUSD).div(BASIS_POINTS_BD).div(BASIS_POINTS_BD);
+    const revenueUSD = event.params.value.times(synth.burnFee).toBigDecimal().times(synth.priceUSD).div(BASIS_POINTS_BD).div(TO_ETH_BD);
+    const feeBurnUSD = event.params.value.times(synth.burnFee).times(pool.issuerAlloc).toBigDecimal().times(synth.priceUSD).div(BASIS_POINTS_BD).div(BASIS_POINTS_BD).div(TO_ETH_BD);
+
+    pool.totalRevenueUSD = pool.totalRevenueUSD.plus(revenueUSD);
+    pool.totalBurnUSD = pool.totalBurnUSD.plus(feeBurnUSD);
+
     poolDayData.dailyRevenueUSD = poolDayData.dailyRevenueUSD.plus(revenueUSD);
     poolDayData.dailyBurnUSD = poolDayData.dailyBurnUSD.plus(feeBurnUSD);
+    poolDayData.totalRevenueUSD = pool.totalRevenueUSD;
+    poolDayData.totalBurnUSD = pool.totalBurnUSD;
 
     synthDayData.dailyBurned = synthDayData.dailyBurned.plus(event.params.value);
 
     let burn = gocBurn(event, synth.id, event.params.from.toHex());
-    burn.amount = event.params.value.toBigDecimal().div(BigDecimal.fromString("1000000000000000000"));
+    burn.amount = event.params.value.toBigDecimal().div(TO_ETH_BD);
     burn.priceUSD = synth.priceUSD;
 
     let account = gocAccount(event.params.from.toHex());
-    let newPoint = event.params.value.toBigDecimal().div(BigDecimal.fromString("1000000000000000000")).times(synth.priceUSD).times(rate(event.block.timestamp.toBigDecimal()));
+    let newPoint = event.params.value.toBigDecimal().div(TO_ETH_BD).times(synth.priceUSD).times(rate(event.block.timestamp.toBigDecimal()));
     account.totalPoint = account.totalPoint.plus(newPoint);
     account.totalBurnUSD = account.totalBurnUSD.plus(burn.amount.times(synth.priceUSD));
 
@@ -106,11 +118,4 @@ function handleReferred(event: Referred): void {
 
 
 
-// "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-dev2",
-// # - event: Referred(indexed address,indexed address)  
-//         #   handler: handleReferred 
 
-
-// - IssuerPriceOracleUpdated from pool entity
-
-//templ

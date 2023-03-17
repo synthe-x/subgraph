@@ -151,7 +151,6 @@ type AccountDayData @entity {
 
 type Account @entity {
   id: ID!
-  address: String!
   totalPoint: BigDecimal!
   totalMintUSD: BigDecimal!
   totalBurnUSD: BigDecimal!
@@ -185,7 +184,6 @@ type AccountBalance @entity {
 
 type Token @entity {
   id: ID!
-  address: String!
   name: String!
   symbol: String!
   decimals: Int!

@@ -15,6 +15,7 @@ export const BASIS_POINTS = BigInt.fromString('10000');
 export const BASIS_POINTS_BD = BASIS_POINTS.toBigDecimal();
 
 export const PRICE_DECIMALS = BigInt.fromString('100000000');
+export const TO_ETH_BD = BigDecimal.fromString("1000000000000000000")
 
 
 const ONE_WEEK: BigDecimal = BigDecimal.fromString("604800");

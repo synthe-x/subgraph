@@ -193,4 +193,7 @@ templates:
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
+        - event: Referred(indexed address,indexed address)
+          handler: handleReferred
+
       file: ./src/synth.ts

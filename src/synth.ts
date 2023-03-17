@@ -1,13 +1,14 @@
+import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import { Transfer } from "../generated/Crypto Market/ERC20";
-import { ADDRESS_ZERO, BASIS_POINTS, PRICE_DECIMALS, BASIS_POINTS_BD } from './helpers/const';
-import { gocToken, gocSynth, gocPool, gocAccount, gocPoolDayData, gocSynthDayData } from './helpers/goc';
+import { ADDRESS_ZERO, BASIS_POINTS, PRICE_DECIMALS, BASIS_POINTS_BD, rate } from './helpers/const';
+import { gocToken, gocSynth, gocPool, gocPoolDayData, gocAccount, gocSynthDayData, gocMint, gocBurn, gocAccountDayData } from './helpers/goc';
 import { updatePoolDebt } from "./helpers/update/debt";
 import { getTokenPrice, updatePoolPrices } from './helpers/update/price';
-
+import { Referred } from "../generated/templates/Synth/Synth"
 export function handleTransfer(event: Transfer): void {
-    if(event.params.from.equals(ADDRESS_ZERO)){
+    if (event.params.from.equals(ADDRESS_ZERO)) {
         handleMint(event);
-    } else if (event.params.to.equals(ADDRESS_ZERO)){
+    } else if (event.params.to.equals(ADDRESS_ZERO)) {
         handleBurn(event);
     }
 }
@@ -31,6 +32,21 @@ function handleMint(event: Transfer): void {
 
     synthDayData.dailyMinted = synthDayData.dailyMinted.plus(event.params.value);
 
+    let mint = gocMint(event, synth.id, event.params.to.toHex());
+    mint.amount = event.params.value.toBigDecimal().div(BigDecimal.fromString("1000000000000000000"));
+    mint.priceUSD = synth.priceUSD;
+
+    let account = gocAccount(event.params.to.toHex());
+    let newPoint = event.params.value.toBigDecimal().div(BigDecimal.fromString("1000000000000000000")).times(synth.priceUSD).times(rate(event.block.timestamp.toBigDecimal()));
+    account.totalPoint = account.totalPoint.plus(newPoint);
+    account.totalMintUSD = account.totalMintUSD.plus(mint.amount.times(synth.priceUSD));
+
+    let accountDayData = gocAccountDayData(event, account.id);
+    accountDayData.dailyMintedUSD = accountDayData.dailyMintedUSD.plus(mint.amount.times(synth.priceUSD));
+    accountDayData.dailyPoint = accountDayData.dailyPoint.plus(newPoint);
+    accountDayData.save();
+    account.save();
+    mint.save()
     synth.save();
     token.save();
     pool = updatePoolPrices(pool);
@@ -58,6 +74,22 @@ function handleBurn(event: Transfer): void {
 
     synthDayData.dailyBurned = synthDayData.dailyBurned.plus(event.params.value);
 
+    let burn = gocBurn(event, synth.id, event.params.from.toHex());
+    burn.amount = event.params.value.toBigDecimal().div(BigDecimal.fromString("1000000000000000000"));
+    burn.priceUSD = synth.priceUSD;
+
+    let account = gocAccount(event.params.from.toHex());
+    let newPoint = event.params.value.toBigDecimal().div(BigDecimal.fromString("1000000000000000000")).times(synth.priceUSD).times(rate(event.block.timestamp.toBigDecimal()));
+    account.totalPoint = account.totalPoint.plus(newPoint);
+    account.totalBurnUSD = account.totalBurnUSD.plus(burn.amount.times(synth.priceUSD));
+
+    let accountDayData = gocAccountDayData(event, account.id);
+    accountDayData.dailyBurnUSD = accountDayData.dailyBurnUSD.plus(burn.amount.times(synth.priceUSD));
+    accountDayData.dailyPoint = accountDayData.dailyPoint.plus(newPoint);
+
+    accountDayData.save();
+    account.save();
+    burn.save();
     synth.save();
     token.save();
     pool = updatePoolPrices(pool);
@@ -65,3 +97,20 @@ function handleBurn(event: Transfer): void {
     poolDayData.save();
     synthDayData.save();
 }
+
+function handleReferred(event: Referred): void {
+    let account = gocAccount(event.params.account.toString());
+    account.referredBy = event.params.referredBy.toString();
+    account.save()
+}
+
+
+
+// "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-dev2",
+// # - event: Referred(indexed address,indexed address)  
+//         #   handler: handleReferred 
+
+
+// - IssuerPriceOracleUpdated from pool entity
+
+//templ

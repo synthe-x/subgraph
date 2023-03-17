@@ -13,12 +13,13 @@ import {
     PriceOracleUpdated,
     FeeTokenUpdated,
     Transfer
-  } from "../generated/Crypto Market/Pool"
+} from "../generated/Crypto Market/Pool"
 
-import { gocCollateral, gocPool, gocSynth, gocAccountPosition, gocAccount, gocAccountBalance, gocToken, gocCollateralDayData, gocPoolDayData } from './helpers/goc';
+import { gocCollateral, gocPool, gocSynth, gocAccountPosition, gocAccount, gocAccountBalance, gocToken, gocCollateralDayData, gocPoolDayData, gocBorrow, gocRepay } from './helpers/goc';
 import { updatePoolDebt } from "./helpers/update/debt";
 import { getTokenPrice, updatePoolPrices } from './helpers/update/price';
 import { ADDRESS_ZERO, ZERO_BI } from './helpers/const';
+import { Account } from '../generated/schema';
 import { Liquidate } from '../generated/SyntheX/Pool';
 
 export function handlePaused(event: Paused): void {
@@ -43,8 +44,8 @@ export function handleSynthUpdated(event: SynthUpdated): void {
     synth.priceUSD = getTokenPrice(token, pool);
     pool = updatePoolDebt(pool);
 
-    synth.isEnabled = event.params.isActive;
-
+    synth.isDisabled = event.params.isDisabled;
+    synth.isActive = event.params.isActive;
     synth.mintFee = event.params.mintFee;
     synth.burnFee = event.params.burnFee;
     synth.save();
@@ -68,7 +69,6 @@ export function handleCollateralParamsUpdated(event: CollateralParamsUpdated): v
     collateral.cap = event.params.cap;
     collateral.baseLTV = event.params.baseLTV.toI32();
     collateral.liqThreshold = event.params.liqThreshold.toI32();
-    collateral.liqBonus = event.params.liqBonus.toI32();
     collateral.save();
     pool.save();
 }
@@ -86,12 +86,12 @@ export function handleCollateralEntered(event: CollateralEntered): void {
     pool = updatePoolDebt(pool);
 
     // if entering 
-    if(!accountBalance.hasEntered){
+    if (!accountBalance.hasEntered) {
         collateral.totalPositions += 1;
     }
     collateral.cumulativeEnteredPositions += 1;
     accountBalance.hasEntered = true;
-    
+
     account.save();
     accountPosition.save();
     accountBalance.save();
@@ -112,7 +112,7 @@ export function handleCollateralExited(event: CollateralExited): void {
     pool = updatePoolDebt(pool);
 
     // if exiting
-    if(accountBalance.hasEntered){
+    if (accountBalance.hasEntered) {
         collateral.totalPositions -= 1;
     }
     collateral.cumulativeExitedPositions += 1;
@@ -133,9 +133,9 @@ export function handleDeposit(event: Deposit): void {
 
     collateral.totalDeposits = collateral.totalDeposits.plus(event.params.amount);
     collateral.cumulativeDeposits = collateral.cumulativeDeposits.plus(event.params.amount);
-    
+
     accountBalance.balance = accountBalance.balance.plus(event.params.amount);
-    
+
     let collateralDayData = gocCollateralDayData(collateral, event);
     collateralDayData.dailyDeposits = collateralDayData.dailyDeposits.plus(event.params.amount);
 
@@ -155,12 +155,12 @@ export function handleWithdraw(event: Withdraw): void {
     let accountPosition = gocAccountPosition(event.params.user.toHex(), pool.id);
     let accountBalance = gocAccountBalance(accountPosition.id, collateral.id);
     let token = gocToken(event.params.asset.toHex());
-    
+
     collateral.totalDeposits = collateral.totalDeposits.minus(event.params.amount);
     collateral.cumulativeWithdrawals = collateral.cumulativeWithdrawals.plus(event.params.amount);
-    
+
     accountBalance.balance = accountBalance.balance.minus(event.params.amount);
-    
+
     let collateralDayData = gocCollateralDayData(collateral, event);
     collateralDayData.dailyWithdrawals = collateralDayData.dailyWithdrawals.plus(event.params.amount);
 
@@ -193,9 +193,9 @@ export function handleFeeTokenUpdated(event: FeeTokenUpdated): void {
 }
 
 export function handleTransfer(event: Transfer): void {
-    if(event.params.from.toHex() == ADDRESS_ZERO.toHex()){
+    if (event.params.from.toHex() == ADDRESS_ZERO.toHex()) {
         handleMint(event);
-    } else if (event.params.to.toHex() == ADDRESS_ZERO.toHex()){
+    } else if (event.params.to.toHex() == ADDRESS_ZERO.toHex()) {
         handleBurn(event);
     } else {
         log.warning("Transfer event from {} to {} with value {}", [event.params.from.toHex(), event.params.to.toHex(), event.params.value.toString()]);
@@ -208,38 +208,49 @@ function handleMint(event: Transfer): void {
     let accountPosition = gocAccountPosition(event.params.to.toHex(), pool.id);
 
     let amountUSD = event.params.value.toBigDecimal();
-    if(pool.totalSupply.gt(ZERO_BI)){
+    if (pool.totalSupply.gt(ZERO_BI)) {
         amountUSD = amountUSD.div(pool.totalSupply.toBigDecimal()).times(pool.totalDebtUSD);
     }
     pool.totalSupply = pool.totalSupply.plus(event.params.value);
     accountPosition.balance = accountPosition.balance.plus(event.params.value);
-    accountPosition.save();
-
+   
     pool = updatePoolDebt(pool);
     let poolDayData = gocPoolDayData(pool, event);
     poolDayData.dailyDebtIssuedUSD = poolDayData.dailyDebtIssuedUSD.plus(amountUSD);
     poolDayData.save();
     pool.save();
+
+    let borrow = gocBorrow(event, accountPosition.id);
+    borrow.amount = event.params.value.toBigDecimal();
+    borrow.totalSupply = pool.totalSupply.toBigDecimal();
+    borrow.totalDebtUSD = pool.totalDebtUSD;
+    accountPosition.totalBorrowUSD = accountPosition.totalBorrowUSD.plus(borrow.amount.div(borrow.totalSupply).times(borrow.totalDebtUSD));
+    borrow.save()
+    accountPosition.save();
 }
 
 function handleBurn(event: Transfer): void {
     let pool = gocPool(event.address.toHex());
     pool = updatePoolPrices(pool);
     let accountPosition = gocAccountPosition(event.params.from.toHex(), pool.id);
+    let amountUSD = event.params.value.toBigDecimal().div(pool.totalSupply.toBigDecimal()).times(pool.totalDebtUSD);
+    
+    let repay = gocRepay(event, accountPosition.id);
+    repay.amount = event.params.value.toBigDecimal();
+    repay.totalSupply = pool.totalSupply.toBigDecimal();
+    repay.totalDebtUSD = pool.totalDebtUSD;
 
-    let amountUSD = event.params.value.toBigDecimal();
-    if(pool.totalSupply.gt(ZERO_BI)){
-        amountUSD = amountUSD.div(pool.totalSupply.toBigDecimal()).times(pool.totalDebtUSD);
-    }
     pool.totalSupply = pool.totalSupply.minus(event.params.value);
     accountPosition.balance = accountPosition.balance.minus(event.params.value);
-    accountPosition.save();
 
     pool = updatePoolDebt(pool);
     let poolDayData = gocPoolDayData(pool, event);
     poolDayData.dailyDebtBurnedUSD = poolDayData.dailyDebtBurnedUSD.plus(amountUSD);
-    poolDayData.save();
+    accountPosition.totalRepayUSD = accountPosition.totalRepayUSD.plus(amountUSD);
+    poolDayData.save();                                                                                           
     pool.save();
+    repay.save()
+    accountPosition.save();
 }
 
 export function handleLiquidate(event: Liquidate): void {

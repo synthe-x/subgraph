@@ -17,9 +17,9 @@ type Pool @entity {
   # Rewards
   rewardTokens: [Token!]!
   rewardSpeeds: [BigInt!]!
-  
+
   # Params
-  feeToken: Synth!
+  feeToken: String!
   issuerAlloc: BigInt!
   oracle: String!
   paused: Boolean!
@@ -35,8 +35,6 @@ type Pool @entity {
   collateralIds: [String!]!
   synths: [Synth!]! @derivedFrom(field: "pool")
   collaterals: [Collateral!]! @derivedFrom(field: "pool")
-
-  dayDatas: [PoolDayData!]! @derivedFrom(field: "pool")
 }
 
 type PoolDayData @entity {
@@ -100,7 +98,8 @@ type Synth @entity {
   ## {synth}
   id: ID!
   pool: Pool!
-  isEnabled: Boolean!
+  isActive: Boolean!
+  isDisabled: Boolean!
   mintFee: BigInt!
   burnFee: BigInt!
   token: Token!
@@ -113,8 +112,6 @@ type Synth @entity {
   ## Price Data
   priceUSD: BigDecimal!
   lastPriceUpdate: Int!
-
-  dayDatas: [SynthDayData!]! @derivedFrom(field: "synth")
 }
 
 type Collateral @entity {
@@ -124,13 +121,13 @@ type Collateral @entity {
   token: Token!
 
   ## Params
-  isEnabled: Boolean!
+  isActive: Boolean!
   cap: BigInt!
   baseLTV: Int!
   liqThreshold: Int!
-  liqBonus: Int!
 
-  totalDeposits: BigInt! 
+
+  totalDeposits: BigInt!
   cumulativeDeposits: BigInt!
   cumulativeWithdrawals: BigInt!
 
@@ -141,14 +138,28 @@ type Collateral @entity {
   ## Price Data
   priceUSD: BigDecimal!
   lastPriceUpdate: Int!
+}
 
-  dayDatas: [CollateralDayData!]! @derivedFrom(field: "collateral")
+type AccountDayData @entity {
+  id: ID!
+  dayId: Int!
+  account: Account!
+  dailyPoint: BigDecimal!
+  dailyMintedUSD: BigDecimal!
+  dailyBurnUSD: BigDecimal!
 }
 
 type Account @entity {
   id: ID!
   address: String!
+  totalPoint: BigDecimal!
+  totalMintUSD: BigDecimal!
+  totalBurnUSD: BigDecimal!
+  referredBy: String!
+  accountDayData: [AccountDayData!]! @derivedFrom(field: "account")
   positions: [AccountPosition!]! @derivedFrom(field: "account")
+  mint: [Mint!]! @derivedFrom(field: "account")
+  burn: [Burn!]! @derivedFrom(field: "account")
 }
 
 type AccountPosition @entity {
@@ -157,7 +168,11 @@ type AccountPosition @entity {
   account: Account!
   pool: Pool!
   balance: BigInt!
+  totalBorrowUSD: BigDecimal!
+  totalRepayUSD: BigDecimal!
   collateralBalances: [AccountBalance!]! @derivedFrom(field: "accountPosition")
+  borrow: [Borrow!]! @derivedFrom(field: "accountPosition")
+  repay: [Repay!]! @derivedFrom(field: "accountPosition")
 }
 
 type AccountBalance @entity {
@@ -174,4 +189,36 @@ type Token @entity {
   name: String!
   symbol: String!
   decimals: Int!
+}
+
+type Borrow @entity {
+  id: ID!
+  accountPosition: AccountPosition!
+  amount: BigDecimal!
+  totalSupply: BigDecimal!
+  totalDebtUSD: BigDecimal!
+}
+
+type Repay @entity {
+  id: ID!
+  accountPosition: AccountPosition!
+  amount: BigDecimal!
+  totalSupply: BigDecimal!
+  totalDebtUSD: BigDecimal!
+}
+
+type Mint @entity {
+  id: ID!
+  account: Account!
+  synth: Synth!
+  amount: BigDecimal!
+  priceUSD: BigDecimal!
+}
+
+type Burn @entity {
+  id: ID!
+  account: Account!
+  synth: Synth!
+  amount: BigDecimal!
+  priceUSD: BigDecimal!
 }

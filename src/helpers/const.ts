@@ -1,4 +1,4 @@
-import { Bytes, BigInt, Address } from '@graphprotocol/graph-ts';
+import { Bytes, BigInt, Address, BigDecimal } from '@graphprotocol/graph-ts';
 
 export const ONE_BYTE = Bytes.fromI32(1);
 export const ONE_BI = BigInt.fromI32(1);
@@ -15,3 +15,27 @@ export const BASIS_POINTS = BigInt.fromString('10000');
 export const BASIS_POINTS_BD = BASIS_POINTS.toBigDecimal();
 
 export const PRICE_DECIMALS = BigInt.fromString('100000000');
+
+
+const ONE_WEEK: BigDecimal = BigDecimal.fromString("604800");
+const START_DATE: BigDecimal = BigDecimal.fromString("1678790233");
+
+
+export function rate(timestamp: BigDecimal): BigDecimal {
+
+    let rate = BigDecimal.fromString("0.016");
+
+    let a = timestamp.minus(START_DATE).div(ONE_WEEK);
+    if (a.lt(BigDecimal.fromString("1"))) {
+        a = BigDecimal.fromString("1")
+    }
+    rate = rate.div(a)
+    if (rate.lt(BigDecimal.fromString("0.001"))) {
+        rate = BigDecimal.fromString("0.001")
+    }
+    return rate
+}
+
+
+
+

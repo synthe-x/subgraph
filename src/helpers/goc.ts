@@ -1,4 +1,4 @@
-import { Address, Bytes, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, Bytes, BigInt, ethereum, BigDecimal } from "@graphprotocol/graph-ts";
 import {
 	Pool,
 	Protocol,
@@ -8,6 +8,12 @@ import {
 	AccountPosition,
 	AccountBalance,
 	Token,
+	Borrow,
+	Repay,
+	Mint,
+	Burn,
+	AccountDayData,
+
 } from "../../generated/schema";
 import { ADDRESS_ZERO, ONE_BI, ZERO_BI, ETH_ADDRESS, ZERO_BD } from './const';
 import { ERC20 } from "../../generated/Crypto Market/ERC20";
@@ -60,12 +66,13 @@ export function gocPool(id: string): Pool {
 	return pool as Pool;
 }
 
-export function gocSynth(id: string, pool: Pool|null = null): Synth {
+export function gocSynth(id: string, pool: Pool | null = null): Synth {
 	let synth = Synth.load(id);
 	if (synth == null) {
 		synth = new Synth(id);
 
-		synth.isEnabled = false;
+		synth.isActive = true;
+		synth.isDisabled = false;
 		synth.pool = ADDRESS_ZERO.toHex();
 		synth.mintFee = ZERO_BI;
 		synth.burnFee = ZERO_BI;
@@ -77,7 +84,7 @@ export function gocSynth(id: string, pool: Pool|null = null): Synth {
 		synth.cumulativeBurned = ZERO_BI;
 		synth.totalSupply = ZERO_BI;
 
-		if(pool){
+		if (pool) {
 			let _synthIds = pool.synthIds;
 			_synthIds.push(id);
 			pool.synthIds = _synthIds;
@@ -127,14 +134,14 @@ export function gocCollateral(id: string, pool: Pool): Collateral {
 	let collateral = Collateral.load(_id);
 	if (collateral == null) {
 		collateral = new Collateral(_id);
-		collateral.pool = pool.id;
+		// collateral.pool = pool.id;
 		collateral.token = gocToken(id).id;
 
-		collateral.isEnabled = false;
+		collateral.isActive = true;
 		collateral.cap = ZERO_BI;
 		collateral.baseLTV = 0;
 		collateral.liqThreshold = 0;
-		collateral.liqBonus = 0;
+		
 
 		collateral.totalDeposits = ZERO_BI;
 		collateral.cumulativeDeposits = ZERO_BI;
@@ -155,6 +162,10 @@ export function gocAccount(id: string): Account {
 	let account = Account.load(id);
 	if (account == null) {
 		account = new Account(id);
+		account.totalPoint = ZERO_BD;
+		account.totalMintUSD = ZERO_BD;
+		account.totalBurnUSD = ZERO_BD;
+		account.referredBy= ADDRESS_ZERO.toString();
 		account.save();
 	}
 	return account as Account;
@@ -171,6 +182,8 @@ export function gocAccountPosition(
 		accountPosition.account = account;
 		accountPosition.pool = pool;
 		accountPosition.balance = ZERO_BI;
+		accountPosition.totalBorrowUSD = ZERO_BD;
+		accountPosition.totalRepayUSD = ZERO_BD;
 		accountPosition.save();
 	}
 	return accountPosition as AccountPosition;
@@ -195,7 +208,7 @@ export function gocAccountBalance(
 export function gocPoolDayData(
 	pool: Pool,
 	event: ethereum.Event,
-): PoolDayData { 
+): PoolDayData {
 	let id = pool.id + "-" + (event.block.timestamp.toI32() / 86400).toString();
 	let poolDayData = PoolDayData.load(id);
 	if (poolDayData == null) {
@@ -264,3 +277,90 @@ export function gocCollateralDayData(
 
 	return collateralDayData as CollateralDayData;
 }
+
+export function gocBorrow
+	(event: ethereum.Event,
+		accountPosition: string
+	): Borrow {
+	let id = event.transaction.hash.toHexString().concat(event.logIndex.toString());
+	let borrow = Borrow.load(id);
+	if (borrow == null) {
+		borrow = new Borrow(id);
+		borrow.accountPosition = accountPosition;
+		borrow.totalSupply = ZERO_BD;
+		borrow.totalDebtUSD = ZERO_BD;
+		borrow.save();
+	}
+	return borrow as Borrow
+}
+
+export function gocRepay
+	(event: ethereum.Event,
+		accountPosition: string
+	): Repay {
+	let id = event.transaction.hash.toHexString().concat(event.logIndex.toString());
+	let repay = Repay.load(id);
+	if (repay == null) {
+		repay = new Repay(id);
+		repay.accountPosition = accountPosition;
+		repay.totalSupply = ZERO_BD;
+		repay.totalDebtUSD = ZERO_BD;
+		repay.save();
+	}
+	return repay as Repay
+}
+
+export function gocMint
+	(
+		event: ethereum.Event,
+		synth: string,
+		account: string
+	): Mint {
+	let id = event.transaction.hash.toHexString().concat(event.logIndex.toString());
+	let mint = Mint.load(id);
+	if (mint == null) {
+		mint = new Mint(id);
+		mint.account = account;
+		mint.amount = ZERO_BD;
+		mint.priceUSD = ZERO_BD;
+		mint.synth = synth;
+	}
+	return mint as Mint
+}
+
+export function gocBurn
+	(
+		event: ethereum.Event,
+		synth: string,
+		account: string
+	): Burn {
+	let id = event.transaction.hash.toHexString().concat(event.logIndex.toString());
+	let burn = Burn.load(id);
+	if (burn == null) {
+		burn = new Burn(id);
+		burn.account = account;
+		burn.amount = ZERO_BD;
+		burn.priceUSD = ZERO_BD;
+		burn.synth = synth;
+	}
+	return burn as Burn
+}
+
+export function gocAccountDayData(
+	event: ethereum.Event,
+	account: string
+): AccountDayData {
+	let id = account + "-" + (event.block.timestamp.toI32() / 86400).toString();
+	let accountDayData = AccountDayData.load(id);
+	if (accountDayData == null) {
+		accountDayData = new AccountDayData(id);
+		accountDayData.dayId = event.block.timestamp.toI32() / 86400;
+		accountDayData.account = account;
+		accountDayData.dailyPoint = ZERO_BD;
+		accountDayData.dailyMintedUSD = ZERO_BD;
+		accountDayData.dailyBurnUSD = ZERO_BD;
+	}
+
+	return accountDayData as AccountDayData
+}
+

@@ -686,7 +686,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_account",
+        "name": "_recipient",
         "type": "address"
       },
       {

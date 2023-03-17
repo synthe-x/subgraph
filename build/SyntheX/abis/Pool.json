@@ -97,12 +97,6 @@
       },
       {
         "indexed": false,
-        "internalType": "uint256",
-        "name": "liqProtocolFee",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
         "internalType": "bool",
         "name": "isEnabled",
         "type": "bool"
@@ -179,6 +173,49 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": true,
+        "internalType": "address",
+        "name": "liquidator",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "outAsset",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "outAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "outPenalty",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "outRefund",
+        "type": "uint256"
+      }
+    ],
+    "name": "Liquidate",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": false,
         "internalType": "address",
         "name": "account",
@@ -226,7 +263,13 @@
       {
         "indexed": false,
         "internalType": "bool",
-        "name": "isEnabled",
+        "name": "isActive",
+        "type": "bool"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "isDisabled",
         "type": "bool"
       },
       {
@@ -525,7 +568,7 @@
     "outputs": [
       {
         "internalType": "bool",
-        "name": "isEnabled",
+        "name": "isActive",
         "type": "bool"
       },
       {
@@ -551,11 +594,6 @@
       {
         "internalType": "uint256",
         "name": "liqBonus",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "liqProtocolFee",
         "type": "uint256"
       }
     ],
@@ -1089,7 +1127,12 @@
     "outputs": [
       {
         "internalType": "bool",
-        "name": "isEnabled",
+        "name": "isActive",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "isDisabled",
         "type": "bool"
       },
       {
@@ -1209,7 +1252,7 @@
         "components": [
           {
             "internalType": "bool",
-            "name": "isEnabled",
+            "name": "isActive",
             "type": "bool"
           },
           {
@@ -1236,11 +1279,6 @@
             "internalType": "uint256",
             "name": "liqBonus",
             "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "liqProtocolFee",
-            "type": "uint256"
           }
         ],
         "internalType": "struct PoolStorage.Collateral",
@@ -1264,7 +1302,12 @@
         "components": [
           {
             "internalType": "bool",
-            "name": "isEnabled",
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "internalType": "bool",
+            "name": "isDisabled",
             "type": "bool"
           },
           {

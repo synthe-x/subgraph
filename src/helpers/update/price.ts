@@ -1,7 +1,7 @@
 import { Address, BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import { PriceOracle } from "../../../generated/SyntheX/PriceOracle";
 import { Pool, Token, Collateral, Synth } from '../../../generated/schema';
-import { ADDRESS_ZERO, ZERO_BI, PRICE_DECIMALS, ZERO_BD } from '../const';
+import { ADDRESS_ZERO, ZERO_BI, PRICE_DECIMALS, ZERO_BD, ETH_ADDRESS } from '../const';
 
 export function getTokenPrice(token: Token, pool: Pool): BigDecimal {
     const oracle = pool.oracle;
@@ -19,23 +19,30 @@ export function getTokenPrice(token: Token, pool: Pool): BigDecimal {
 
 export function updatePoolPrices(pool: Pool): Pool {
     const synthIds = pool.synthIds;
-    for (let i = 0; i < synthIds.length; i++) {
-        const synth = Synth.load(synthIds[i]);
-        if (synth == null) continue;
-        const token = Token.load(synth.token);
-        if (token == null) continue;
-        const price = getTokenPrice(token as Token, pool);
-        synth.priceUSD = price;
-        synth.save();
+    const oracleContract = PriceOracle.bind(Address.fromString(pool.oracle));
+    const assets = new Array<Address>();
+    for(let i = 0; i < synthIds.length; i++) {
+        assets.push(changetype<Address>(Address.fromHexString(synthIds[i])));
     }
-    for(let i = 0; i < pool.collateralIds.length; i++){
+    for(let i = 0; i < pool.collateralIds.length; i++) {
         const collateral = Collateral.load(pool.collateralIds[i]);
         if(collateral == null) continue;
-        const token = Token.load(collateral.token);
-        if(token == null) continue;
-        const price = getTokenPrice(token as Token, pool);
-        collateral.priceUSD = price;
-        collateral.save();
+        assets.push(changetype<Address>(Address.fromHexString(collateral.token)));
+    }
+    const prices = oracleContract.try_getAssetsPrices(assets);
+    if (!prices.reverted) {
+        for(let i = 0; i < synthIds.length; i++) {
+            const synth = Synth.load(synthIds[i]);
+            if(synth == null) continue;
+            synth.priceUSD = prices.value[i].toBigDecimal().div(PRICE_DECIMALS.toBigDecimal());
+            synth.save();
+        }
+        for(let i = 0; i < pool.collateralIds.length; i++) {
+            const collateral = Collateral.load(pool.collateralIds[i]);
+            if(collateral == null) continue;
+            collateral.priceUSD = prices.value[i + synthIds.length].toBigDecimal().div(PRICE_DECIMALS.toBigDecimal());
+            collateral.save();
+        }
     }
     return pool;
 }

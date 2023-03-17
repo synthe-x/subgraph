@@ -1105,6 +1105,40 @@ export class PauseCall__Outputs {
   }
 }
 
+export class RemoveRewardTokenCall extends ethereum.Call {
+  get inputs(): RemoveRewardTokenCall__Inputs {
+    return new RemoveRewardTokenCall__Inputs(this);
+  }
+
+  get outputs(): RemoveRewardTokenCall__Outputs {
+    return new RemoveRewardTokenCall__Outputs(this);
+  }
+}
+
+export class RemoveRewardTokenCall__Inputs {
+  _call: RemoveRewardTokenCall;
+
+  constructor(call: RemoveRewardTokenCall) {
+    this._call = call;
+  }
+
+  get _rewardToken(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get _pool(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class RemoveRewardTokenCall__Outputs {
+  _call: RemoveRewardTokenCall;
+
+  constructor(call: RemoveRewardTokenCall) {
+    this._call = call;
+  }
+}
+
 export class RenounceRoleCall extends ethereum.Call {
   get inputs(): RenounceRoleCall__Inputs {
     return new RenounceRoleCall__Inputs(this);
@@ -1207,20 +1241,20 @@ export class SetAddressCall__Outputs {
   }
 }
 
-export class SetPoolSpeedsCall extends ethereum.Call {
-  get inputs(): SetPoolSpeedsCall__Inputs {
-    return new SetPoolSpeedsCall__Inputs(this);
+export class SetPoolSpeedCall extends ethereum.Call {
+  get inputs(): SetPoolSpeedCall__Inputs {
+    return new SetPoolSpeedCall__Inputs(this);
   }
 
-  get outputs(): SetPoolSpeedsCall__Outputs {
-    return new SetPoolSpeedsCall__Outputs(this);
+  get outputs(): SetPoolSpeedCall__Outputs {
+    return new SetPoolSpeedCall__Outputs(this);
   }
 }
 
-export class SetPoolSpeedsCall__Inputs {
-  _call: SetPoolSpeedsCall;
+export class SetPoolSpeedCall__Inputs {
+  _call: SetPoolSpeedCall;
 
-  constructor(call: SetPoolSpeedsCall) {
+  constructor(call: SetPoolSpeedCall) {
     this._call = call;
   }
 
@@ -1241,10 +1275,10 @@ export class SetPoolSpeedsCall__Inputs {
   }
 }
 
-export class SetPoolSpeedsCall__Outputs {
-  _call: SetPoolSpeedsCall;
+export class SetPoolSpeedCall__Outputs {
+  _call: SetPoolSpeedCall;
 
-  constructor(call: SetPoolSpeedsCall) {
+  constructor(call: SetPoolSpeedCall) {
     this._call = call;
   }
 }

@@ -35,6 +35,8 @@ dataSources:
           file: ./abis/ERC20.json
         - name: Pool
           file: ./abis/Pool.json
+        - name: PriceOracle
+          file: ./abis/PriceOracle.json
       eventHandlers:
         - event: DistributedReward(address[],indexed address,address,uint256[],uint256[])
           handler: handleDistributedReward
@@ -78,12 +80,14 @@ dataSources:
           file: ./abis/PriceOracle.json
         - name: ERC20
           file: ./abis/ERC20.json
+        - name: PriceOracle
+          file: ./abis/PriceOracle.json
       eventHandlers:
-        - event: SynthUpdated(indexed address,bool,uint256,uint256)
+        - event: SynthUpdated(indexed address,bool,bool,uint256,uint256)
           handler: handleSynthUpdated
         - event: SynthRemoved(indexed address)
           handler: handleSynthRemoved
-        - event: CollateralParamsUpdated(indexed address,uint256,uint256,uint256,uint256,uint256,bool)
+        - event: CollateralParamsUpdated(indexed address,uint256,uint256,uint256,uint256,bool)
           handler: handleCollateralParamsUpdated
         - event: CollateralEntered(indexed address,indexed address)
           handler: handleCollateralEntered
@@ -93,6 +97,8 @@ dataSources:
           handler: handleDeposit
         - event: Withdraw(indexed address,indexed address,uint256)
           handler: handleWithdraw
+        - event: Liquidate(indexed address,indexed address,indexed address,uint256,uint256,uint256)
+          handler: handleLiquidate
         - event: IssuerAllocUpdated(uint256)
           handler: handleIssuerAllocUpdated
         - event: PriceOracleUpdated(indexed address)
@@ -122,6 +128,8 @@ templates:
           file: ./abis/ERC20.json
         - name: Pool
           file: ./abis/Pool.json
+        - name: PriceOracle
+          file: ./abis/PriceOracle.json
       entities:
         - Transfer
       eventHandlers:

@@ -19,6 +19,7 @@ import { gocCollateral, gocPool, gocSynth, gocAccountPosition, gocAccount, gocAc
 import { updatePoolDebt } from "./helpers/update/debt";
 import { getTokenPrice, updatePoolPrices } from './helpers/update/price';
 import { ADDRESS_ZERO, ZERO_BI } from './helpers/const';
+import { Liquidate } from '../generated/SyntheX/Pool';
 
 export function handlePaused(event: Paused): void {
     let pool = gocPool(event.address.toHex());
@@ -42,7 +43,8 @@ export function handleSynthUpdated(event: SynthUpdated): void {
     synth.priceUSD = getTokenPrice(token, pool);
     pool = updatePoolDebt(pool);
 
-    synth.isEnabled = event.params.isEnabled;
+    synth.isEnabled = event.params.isActive;
+
     synth.mintFee = event.params.mintFee;
     synth.burnFee = event.params.burnFee;
     synth.save();
@@ -237,5 +239,24 @@ function handleBurn(event: Transfer): void {
     let poolDayData = gocPoolDayData(pool, event);
     poolDayData.dailyDebtBurnedUSD = poolDayData.dailyDebtBurnedUSD.plus(amountUSD);
     poolDayData.save();
+    pool.save();
+}
+
+export function handleLiquidate(event: Liquidate): void {
+    let pool = gocPool(event.address.toHex());
+    pool = updatePoolPrices(pool);
+    let collateral = gocCollateral(event.params.outAsset.toHex(), pool);
+
+    let liquidatorPosition = gocAccountPosition(event.params.liquidator.toHex(), pool.id);
+    let liquidatorBalance = gocAccountBalance(liquidatorPosition.id, collateral.id);
+
+    let liquidateePosition = gocAccountPosition(event.params.account.toHex(), pool.id);
+    let liquidateeBalance = gocAccountBalance(liquidateePosition.id, collateral.id);
+
+    liquidatorBalance.balance = liquidatorBalance.balance.plus(event.params.outAmount.plus(event.params.outPenalty));
+    liquidatorBalance.save();
+    liquidateeBalance.balance = liquidateeBalance.balance.minus(event.params.outAmount.plus(event.params.outPenalty).plus(event.params.outRefund));
+    liquidateeBalance.save();
+
     pool.save();
 }

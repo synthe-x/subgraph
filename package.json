@@ -5,7 +5,8 @@
     "codegen": "graph codegen",
     "build": "graph build",
     "prepare": "mustache ./config.json template.yaml > subgraph.yaml",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-dev",
+    "deploy:dev": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-dev",
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex",
     "create-local": "graph create --node http://localhost:8020/ prasad-kumkar/synthex-dev",
     "remove-local": "graph remove --node http://localhost:8020/ prasad-kumkar/synthex",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 prasad-kumkar/synthex"

@@ -621,6 +621,24 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "_rewardToken",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_pool",
+        "type": "address"
+      }
+    ],
+    "name": "removeRewardToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
         "name": "role",
         "type": "bytes32"
@@ -838,7 +856,7 @@
         "type": "bool"
       }
     ],
-    "name": "setPoolSpeeds",
+    "name": "setPoolSpeed",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

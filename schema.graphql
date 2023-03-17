@@ -19,7 +19,7 @@ type Pool @entity {
   rewardSpeeds: [BigInt!]!
   
   # Params
-  feeToken: String!
+  feeToken: Synth!
   issuerAlloc: BigInt!
   oracle: String!
   paused: Boolean!
@@ -35,6 +35,8 @@ type Pool @entity {
   collateralIds: [String!]!
   synths: [Synth!]! @derivedFrom(field: "pool")
   collaterals: [Collateral!]! @derivedFrom(field: "pool")
+
+  dayDatas: [PoolDayData!]! @derivedFrom(field: "pool")
 }
 
 type PoolDayData @entity {
@@ -111,6 +113,8 @@ type Synth @entity {
   ## Price Data
   priceUSD: BigDecimal!
   lastPriceUpdate: Int!
+
+  dayDatas: [SynthDayData!]! @derivedFrom(field: "synth")
 }
 
 type Collateral @entity {
@@ -137,6 +141,8 @@ type Collateral @entity {
   ## Price Data
   priceUSD: BigDecimal!
   lastPriceUpdate: Int!
+
+  dayDatas: [CollateralDayData!]! @derivedFrom(field: "collateral")
 }
 
 type Account @entity {

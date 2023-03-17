@@ -293,6 +293,15 @@ export class Pool extends Entity {
   set collaterals(value: Array<string>) {
     this.set("collaterals", Value.fromStringArray(value));
   }
+
+  get dayDatas(): Array<string> {
+    let value = this.get("dayDatas");
+    return value!.toStringArray();
+  }
+
+  set dayDatas(value: Array<string>) {
+    this.set("dayDatas", Value.fromStringArray(value));
+  }
 }
 
 export class PoolDayData extends Entity {
@@ -767,6 +776,15 @@ export class Synth extends Entity {
   set lastPriceUpdate(value: i32) {
     this.set("lastPriceUpdate", Value.fromI32(value));
   }
+
+  get dayDatas(): Array<string> {
+    let value = this.get("dayDatas");
+    return value!.toStringArray();
+  }
+
+  set dayDatas(value: Array<string>) {
+    this.set("dayDatas", Value.fromStringArray(value));
+  }
 }
 
 export class Collateral extends Entity {
@@ -949,6 +967,15 @@ export class Collateral extends Entity {
 
   set lastPriceUpdate(value: i32) {
     this.set("lastPriceUpdate", Value.fromI32(value));
+  }
+
+  get dayDatas(): Array<string> {
+    let value = this.get("dayDatas");
+    return value!.toStringArray();
+  }
+
+  set dayDatas(value: Array<string>) {
+    this.set("dayDatas", Value.fromStringArray(value));
   }
 }
 

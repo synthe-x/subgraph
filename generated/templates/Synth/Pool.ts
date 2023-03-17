@@ -113,12 +113,8 @@ export class CollateralParamsUpdated__Params {
     return this._event.parameters[4].value.toBigInt();
   }
 
-  get liqProtocolFee(): BigInt {
-    return this._event.parameters[5].value.toBigInt();
-  }
-
   get isEnabled(): boolean {
-    return this._event.parameters[6].value.toBoolean();
+    return this._event.parameters[5].value.toBoolean();
   }
 }
 
@@ -202,6 +198,44 @@ export class IssuerAllocUpdated__Params {
   }
 }
 
+export class Liquidate extends ethereum.Event {
+  get params(): Liquidate__Params {
+    return new Liquidate__Params(this);
+  }
+}
+
+export class Liquidate__Params {
+  _event: Liquidate;
+
+  constructor(event: Liquidate) {
+    this._event = event;
+  }
+
+  get liquidator(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get account(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+
+  get outAsset(): Address {
+    return this._event.parameters[2].value.toAddress();
+  }
+
+  get outAmount(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
+  }
+
+  get outPenalty(): BigInt {
+    return this._event.parameters[4].value.toBigInt();
+  }
+
+  get outRefund(): BigInt {
+    return this._event.parameters[5].value.toBigInt();
+  }
+}
+
 export class Paused extends ethereum.Event {
   get params(): Paused__Params {
     return new Paused__Params(this);
@@ -273,16 +307,20 @@ export class SynthUpdated__Params {
     return this._event.parameters[0].value.toAddress();
   }
 
-  get isEnabled(): boolean {
+  get isActive(): boolean {
     return this._event.parameters[1].value.toBoolean();
   }
 
+  get isDisabled(): boolean {
+    return this._event.parameters[2].value.toBoolean();
+  }
+
   get mintFee(): BigInt {
-    return this._event.parameters[2].value.toBigInt();
+    return this._event.parameters[3].value.toBigInt();
   }
 
   get burnFee(): BigInt {
-    return this._event.parameters[3].value.toBigInt();
+    return this._event.parameters[4].value.toBigInt();
   }
 }
 
@@ -363,7 +401,6 @@ export class Pool__collateralsResult {
   value3: BigInt;
   value4: BigInt;
   value5: BigInt;
-  value6: BigInt;
 
   constructor(
     value0: boolean,
@@ -371,8 +408,7 @@ export class Pool__collateralsResult {
     value2: BigInt,
     value3: BigInt,
     value4: BigInt,
-    value5: BigInt,
-    value6: BigInt
+    value5: BigInt
   ) {
     this.value0 = value0;
     this.value1 = value1;
@@ -380,7 +416,6 @@ export class Pool__collateralsResult {
     this.value3 = value3;
     this.value4 = value4;
     this.value5 = value5;
-    this.value6 = value6;
   }
 
   toMap(): TypedMap<string, ethereum.Value> {
@@ -391,7 +426,6 @@ export class Pool__collateralsResult {
     map.set("value3", ethereum.Value.fromUnsignedBigInt(this.value3));
     map.set("value4", ethereum.Value.fromUnsignedBigInt(this.value4));
     map.set("value5", ethereum.Value.fromUnsignedBigInt(this.value5));
-    map.set("value6", ethereum.Value.fromUnsignedBigInt(this.value6));
     return map;
   }
 }
@@ -412,20 +446,28 @@ export class Pool__getAccountLiquidityResultLiqStruct extends ethereum.Tuple {
 
 export class Pool__synthsResult {
   value0: boolean;
-  value1: BigInt;
+  value1: boolean;
   value2: BigInt;
+  value3: BigInt;
 
-  constructor(value0: boolean, value1: BigInt, value2: BigInt) {
+  constructor(
+    value0: boolean,
+    value1: boolean,
+    value2: BigInt,
+    value3: BigInt
+  ) {
     this.value0 = value0;
     this.value1 = value1;
     this.value2 = value2;
+    this.value3 = value3;
   }
 
   toMap(): TypedMap<string, ethereum.Value> {
     let map = new TypedMap<string, ethereum.Value>();
     map.set("value0", ethereum.Value.fromBoolean(this.value0));
-    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    map.set("value1", ethereum.Value.fromBoolean(this.value1));
     map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
+    map.set("value3", ethereum.Value.fromUnsignedBigInt(this.value3));
     return map;
   }
 }
@@ -630,7 +672,7 @@ export class Pool extends ethereum.SmartContract {
   collaterals(param0: Address): Pool__collateralsResult {
     let result = super.call(
       "collaterals",
-      "collaterals(address):(bool,uint256,uint256,uint256,uint256,uint256,uint256)",
+      "collaterals(address):(bool,uint256,uint256,uint256,uint256,uint256)",
       [ethereum.Value.fromAddress(param0)]
     );
 
@@ -640,8 +682,7 @@ export class Pool extends ethereum.SmartContract {
       result[2].toBigInt(),
       result[3].toBigInt(),
       result[4].toBigInt(),
-      result[5].toBigInt(),
-      result[6].toBigInt()
+      result[5].toBigInt()
     );
   }
 
@@ -650,7 +691,7 @@ export class Pool extends ethereum.SmartContract {
   ): ethereum.CallResult<Pool__collateralsResult> {
     let result = super.tryCall(
       "collaterals",
-      "collaterals(address):(bool,uint256,uint256,uint256,uint256,uint256,uint256)",
+      "collaterals(address):(bool,uint256,uint256,uint256,uint256,uint256)",
       [ethereum.Value.fromAddress(param0)]
     );
     if (result.reverted) {
@@ -664,8 +705,7 @@ export class Pool extends ethereum.SmartContract {
         value[2].toBigInt(),
         value[3].toBigInt(),
         value[4].toBigInt(),
-        value[5].toBigInt(),
-        value[6].toBigInt()
+        value[5].toBigInt()
       )
     );
   }
@@ -1091,21 +1131,22 @@ export class Pool extends ethereum.SmartContract {
   synths(param0: Address): Pool__synthsResult {
     let result = super.call(
       "synths",
-      "synths(address):(bool,uint256,uint256)",
+      "synths(address):(bool,bool,uint256,uint256)",
       [ethereum.Value.fromAddress(param0)]
     );
 
     return new Pool__synthsResult(
       result[0].toBoolean(),
-      result[1].toBigInt(),
-      result[2].toBigInt()
+      result[1].toBoolean(),
+      result[2].toBigInt(),
+      result[3].toBigInt()
     );
   }
 
   try_synths(param0: Address): ethereum.CallResult<Pool__synthsResult> {
     let result = super.tryCall(
       "synths",
-      "synths(address):(bool,uint256,uint256)",
+      "synths(address):(bool,bool,uint256,uint256)",
       [ethereum.Value.fromAddress(param0)]
     );
     if (result.reverted) {
@@ -1115,8 +1156,9 @@ export class Pool extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(
       new Pool__synthsResult(
         value[0].toBoolean(),
-        value[1].toBigInt(),
-        value[2].toBigInt()
+        value[1].toBoolean(),
+        value[2].toBigInt(),
+        value[3].toBigInt()
       )
     );
   }
@@ -2051,7 +2093,7 @@ export class UpdateCollateralCall__Outputs {
 }
 
 export class UpdateCollateralCall_paramsStruct extends ethereum.Tuple {
-  get isEnabled(): boolean {
+  get isActive(): boolean {
     return this[0].toBoolean();
   }
 
@@ -2073,10 +2115,6 @@ export class UpdateCollateralCall_paramsStruct extends ethereum.Tuple {
 
   get liqBonus(): BigInt {
     return this[5].toBigInt();
-  }
-
-  get liqProtocolFee(): BigInt {
-    return this[6].toBigInt();
   }
 }
 
@@ -2117,16 +2155,20 @@ export class UpdateSynthCall__Outputs {
 }
 
 export class UpdateSynthCall_paramsStruct extends ethereum.Tuple {
-  get isEnabled(): boolean {
+  get isActive(): boolean {
     return this[0].toBoolean();
   }
 
+  get isDisabled(): boolean {
+    return this[1].toBoolean();
+  }
+
   get mintFee(): BigInt {
-    return this[1].toBigInt();
+    return this[2].toBigInt();
   }
 
   get burnFee(): BigInt {
-    return this[2].toBigInt();
+    return this[3].toBigInt();
   }
 }
 

@@ -13,6 +13,9 @@ import {
 	Mint,
 	Burn,
 	AccountDayData,
+	AccountPositionDayData,
+	PoolHrData,
+	AccountPositionHrData,
 
 } from "../../generated/schema";
 import { ADDRESS_ZERO, ONE_BI, ZERO_BI, ETH_ADDRESS, ZERO_BD } from './const';
@@ -368,9 +371,68 @@ export function gocAccountDayData(
 		accountDayData.account = account;
 		accountDayData.dailyPoint = ZERO_BD;
 		accountDayData.dailyMintedUSD = ZERO_BD;
-		accountDayData.dailyBurnUSD = ZERO_BD;
+		accountDayData.dailyBurnedUSD = ZERO_BD;
 	}
 
 	return accountDayData as AccountDayData
 }
 
+export function gocAccountPositionDayData(
+	event: ethereum.Event,
+	accountPosition: AccountPosition
+): AccountPositionDayData {
+	let id = accountPosition.id + "-" + (event.block.timestamp.toI32() / 86400).toString();
+	let accountPositionDayData = AccountPositionDayData.load(id);
+	if (accountPositionDayData == null) {
+		accountPositionDayData = new AccountPositionDayData(id);
+		accountPositionDayData.dayId = event.block.timestamp.toI32() / 86400;
+		accountPositionDayData.accountPosition = accountPosition.id;
+		accountPositionDayData.dailyBalance = ZERO_BI
+	}
+	accountPositionDayData.dailyBalance = accountPosition.balance;
+	return accountPositionDayData as AccountPositionDayData;
+}
+
+export function gocPoolHrData(
+	pool: Pool,
+	event: ethereum.Event,
+): PoolHrData {
+	let id = pool.id + "-" + (event.block.timestamp.toI32() / 3600).toString();
+	let poolHrData = PoolHrData.load(id);
+	if (poolHrData == null) {
+		poolHrData = new PoolHrData(id);
+		poolHrData.pool = pool.id;
+		poolHrData.hrId = event.block.timestamp.toI32() / 3600;
+		poolHrData.totalDebtUSD = ZERO_BD;
+		poolHrData.totalSupply = ZERO_BI;
+		poolHrData.hrRevenueUSD = ZERO_BD;
+		poolHrData.hrBurnUSD = ZERO_BD;
+		poolHrData.totalRevenueUSD = ZERO_BD;
+		poolHrData.totalBurnUSD = ZERO_BD;
+		poolHrData.hrDebtIssuedUSD = ZERO_BD;
+		poolHrData.hrDebtBurnedUSD = ZERO_BD;
+		poolHrData.save();
+	}
+	poolHrData.totalSupply = pool.totalSupply;
+	poolHrData.totalDebtUSD = pool.totalDebtUSD;
+	poolHrData.totalRevenueUSD = pool.totalRevenueUSD;
+	poolHrData.totalBurnUSD = pool.totalBurnUSD;
+	return poolHrData as PoolHrData;
+}
+
+export function gocAccountPositionHrData(
+	event: ethereum.Event,
+	accountPosition: AccountPosition
+): AccountPositionHrData
+{
+	let id = accountPosition.id + "-" + (event.block.timestamp.toI32() / 3600).toString();
+	let accountPositionHrData = AccountPositionHrData.load(id);
+	if (accountPositionHrData == null) {
+		accountPositionHrData = new AccountPositionHrData(id);
+		accountPositionHrData.hrId = event.block.timestamp.toI32() / 3600;
+		accountPositionHrData.accountPosition = accountPosition.id;
+		accountPositionHrData.hrBalance = ZERO_BI
+	}
+	accountPositionHrData.hrBalance = accountPosition.balance
+	return accountPositionHrData as AccountPositionHrData;
+}

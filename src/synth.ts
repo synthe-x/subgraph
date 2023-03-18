@@ -1,7 +1,7 @@
 import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import { Transfer } from "../generated/Crypto Market/ERC20";
 import { ADDRESS_ZERO, BASIS_POINTS, PRICE_DECIMALS, BASIS_POINTS_BD, rate, TO_ETH_BD } from './helpers/const';
-import { gocToken, gocSynth, gocPool, gocPoolDayData, gocAccount, gocSynthDayData, gocMint, gocBurn, gocAccountDayData } from './helpers/goc';
+import { gocToken, gocSynth, gocPool, gocPoolDayData, gocAccount, gocSynthDayData, gocMint, gocBurn, gocAccountDayData, gocPoolHrData } from './helpers/goc';
 import { updatePoolDebt } from "./helpers/update/debt";
 import { getTokenPrice, updatePoolPrices } from './helpers/update/price';
 import { Referred } from "../generated/templates/Synth/Synth"
@@ -36,6 +36,13 @@ function handleMint(event: Transfer): void {
     poolDayData.totalRevenueUSD = pool.totalRevenueUSD;
     poolDayData.totalBurnUSD = pool.totalBurnUSD;
 
+    let poolHrData = gocPoolHrData(pool, event);
+
+    poolHrData.hrRevenueUSD = poolHrData.hrRevenueUSD.plus(revenueUSD);
+    poolHrData.hrBurnUSD = poolHrData.hrBurnUSD.plus(feeBurnUSD);
+    poolHrData.totalRevenueUSD = pool.totalRevenueUSD;
+    poolHrData.totalBurnUSD = pool.totalBurnUSD;
+
     synthDayData.dailyMinted = synthDayData.dailyMinted.plus(event.params.value);
 
     let mint = gocMint(event, synth.id, event.params.to.toHex());
@@ -59,6 +66,7 @@ function handleMint(event: Transfer): void {
     pool.save();
     poolDayData.save();
     synthDayData.save();
+    poolHrData.save();
 }
 
 function handleBurn(event: Transfer): void {
@@ -84,6 +92,13 @@ function handleBurn(event: Transfer): void {
     poolDayData.totalRevenueUSD = pool.totalRevenueUSD;
     poolDayData.totalBurnUSD = pool.totalBurnUSD;
 
+    let poolHrData = gocPoolHrData(pool, event);
+
+    poolHrData.hrRevenueUSD = poolHrData.hrRevenueUSD.plus(revenueUSD);
+    poolHrData.hrBurnUSD = poolHrData.hrBurnUSD.plus(feeBurnUSD);
+    poolHrData.totalRevenueUSD = pool.totalRevenueUSD;
+    poolHrData.totalBurnUSD = pool.totalBurnUSD;
+
     synthDayData.dailyBurned = synthDayData.dailyBurned.plus(event.params.value);
 
     let burn = gocBurn(event, synth.id, event.params.from.toHex());
@@ -96,7 +111,7 @@ function handleBurn(event: Transfer): void {
     account.totalBurnUSD = account.totalBurnUSD.plus(burn.amount.times(synth.priceUSD));
 
     let accountDayData = gocAccountDayData(event, account.id);
-    accountDayData.dailyBurnUSD = accountDayData.dailyBurnUSD.plus(burn.amount.times(synth.priceUSD));
+    accountDayData.dailyBurnedUSD = accountDayData.dailyBurnedUSD.plus(burn.amount.times(synth.priceUSD));
     accountDayData.dailyPoint = accountDayData.dailyPoint.plus(newPoint);
 
     accountDayData.save();
@@ -108,6 +123,7 @@ function handleBurn(event: Transfer): void {
     pool.save();
     poolDayData.save();
     synthDayData.save();
+    poolHrData.save();
 }
 
 function handleReferred(event: Referred): void {

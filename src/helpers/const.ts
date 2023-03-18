@@ -19,7 +19,7 @@ export const TO_ETH_BD = BigDecimal.fromString("1000000000000000000")
 
 
 const ONE_WEEK: BigDecimal = BigDecimal.fromString("604800");
-const START_DATE: BigDecimal = BigDecimal.fromString("1678790233");
+const START_DATE: BigDecimal = BigDecimal.fromString("1680287400");
 
 
 export function rate(timestamp: BigDecimal): BigDecimal {

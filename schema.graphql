@@ -29,7 +29,8 @@ type Pool @entity {
   "Total revenue and burn by the pool"
   totalRevenueUSD: BigDecimal!
   totalBurnUSD: BigDecimal!
-
+  poolDayData: [PoolDayData!]! @derivedFrom(field: "pool")
+  poolHrData: [PoolHrData!]! @derivedFrom(field: "pool")
   # Assets
   synthIds: [String!]!
   collateralIds: [String!]!
@@ -59,6 +60,28 @@ type PoolDayData @entity {
   "Total revenue fees collected by the pool"
   totalRevenueUSD: BigDecimal!
   "Total debt burned from revenue fees"
+  totalBurnUSD: BigDecimal!
+}
+
+type PoolHrData @entity {
+  id: ID!
+  hrId: Int!
+  pool: Pool!
+
+  hrDebtIssuedUSD: BigDecimal!
+
+  hrDebtBurnedUSD: BigDecimal!
+
+  totalDebtUSD: BigDecimal!
+
+  totalSupply: BigInt!
+
+  hrRevenueUSD: BigDecimal!
+
+  hrBurnUSD: BigDecimal!
+
+  totalRevenueUSD: BigDecimal!
+
   totalBurnUSD: BigDecimal!
 }
 
@@ -103,7 +126,7 @@ type Synth @entity {
   mintFee: BigInt!
   burnFee: BigInt!
   token: Token!
-
+  synthDayData: [SynthDayData!]! @derivedFrom(field: "synth")
   ## Activity
   cumulativeMinted: BigInt!
   cumulativeBurned: BigInt!
@@ -126,7 +149,6 @@ type Collateral @entity {
   baseLTV: Int!
   liqThreshold: Int!
 
-
   totalDeposits: BigInt!
   cumulativeDeposits: BigInt!
   cumulativeWithdrawals: BigInt!
@@ -134,7 +156,7 @@ type Collateral @entity {
   totalPositions: Int!
   cumulativeEnteredPositions: Int!
   cumulativeExitedPositions: Int!
-
+  collateralDayData: [CollateralDayData!]! @derivedFrom(field: "collateral")
   ## Price Data
   priceUSD: BigDecimal!
   lastPriceUpdate: Int!
@@ -146,7 +168,7 @@ type AccountDayData @entity {
   account: Account!
   dailyPoint: BigDecimal!
   dailyMintedUSD: BigDecimal!
-  dailyBurnUSD: BigDecimal!
+  dailyBurnedUSD: BigDecimal!
 }
 
 type Account @entity {
@@ -172,6 +194,24 @@ type AccountPosition @entity {
   collateralBalances: [AccountBalance!]! @derivedFrom(field: "accountPosition")
   borrow: [Borrow!]! @derivedFrom(field: "accountPosition")
   repay: [Repay!]! @derivedFrom(field: "accountPosition")
+  dailyBalance: [AccountPositionDayData!]!
+    @derivedFrom(field: "accountPosition")
+  hourlyBalance: [AccountPositionHrData!]!
+    @derivedFrom(field: "accountPosition")
+}
+
+type AccountPositionDayData @entity {
+  id: ID!
+  dayId: Int!
+  dailyBalance: BigInt!
+  accountPosition: AccountPosition!
+}
+# hourly data
+type AccountPositionHrData @entity {
+  id: ID!
+  hrId: Int!
+  hrBalance: BigInt!
+  accountPosition: AccountPosition!
 }
 
 type AccountBalance @entity {

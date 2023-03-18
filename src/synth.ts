@@ -1,6 +1,6 @@
 import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import { Transfer } from "../generated/Crypto Market/ERC20";
-import { ADDRESS_ZERO, BASIS_POINTS, PRICE_DECIMALS, BASIS_POINTS_BD, rate, TO_ETH_BD } from './helpers/const';
+import { ADDRESS_ZERO, BASIS_POINTS, PRICE_DECIMALS, BASIS_POINTS_BD, rate, TO_ETH_BD, ZERO_BD } from './helpers/const';
 import { gocToken, gocSynth, gocPool, gocPoolDayData, gocAccount, gocSynthDayData, gocMint, gocBurn, gocAccountDayData, gocPoolHrData } from './helpers/goc';
 import { updatePoolDebt } from "./helpers/update/debt";
 import { getTokenPrice, updatePoolPrices } from './helpers/update/price';
@@ -128,7 +128,7 @@ function handleBurn(event: Transfer): void {
 
 function handleReferred(event: Referred): void {
     let account = gocAccount(event.params.account.toString());
-    if (account.referredBy == ADDRESS_ZERO.toString()) {
+    if (account.referredBy == ADDRESS_ZERO.toString() && account.totalMintUSD === ZERO_BD) {
         account.referredBy = event.params.referredBy.toString();
         account.save()
     }

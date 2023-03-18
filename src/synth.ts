@@ -128,8 +128,10 @@ function handleBurn(event: Transfer): void {
 
 function handleReferred(event: Referred): void {
     let account = gocAccount(event.params.account.toString());
-    account.referredBy = event.params.referredBy.toString();
-    account.save()
+    if (account.referredBy == ADDRESS_ZERO.toString()) {
+        account.referredBy = event.params.referredBy.toString();
+        account.save()
+    }
 }
 
 

@@ -1,4 +1,4 @@
-specVersion: 0.0.4
+specVersion: 0.0.2
 schema:
   file: ./schema.graphql
 dataSources:
@@ -6,12 +6,12 @@ dataSources:
     name: SyntheX
     network: arbitrum-goerli
     source:
-      address: "0xcaA76743bd21B0093b55e78E1Dd7136bEC8B4890"
-      startBlock: 10603879
+      address: "0x0b98B76e7694F95e8e7346AFF5E70480DAF0E834"
+      startBlock: 12103942
       abi: SyntheX
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
         - AddressUpdated
@@ -51,12 +51,12 @@ dataSources:
     name: Crypto Market
     network: arbitrum-goerli
     source:
-      address: "0x8AC3734A1D2a2C37De95f332833381eEc844F297"
-      startBlock: 10603879
+      address: "0x127CB47E27188AD7b8504D97b350038DDE034C7E"
+      startBlock: 12103966
       abi: Pool
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
         - SynthUpdated
@@ -111,12 +111,12 @@ dataSources:
     name: Foreign Exchange
     network: arbitrum-goerli
     source:
-      address: "0x7499EA6C7786a6cD913267108f8B69c9e4F02BD1"
-      startBlock: 10603879
+      address: "0xC2b733b76663D2952119Bf7c731613b1Fce31Dd6"
+      startBlock: 12104172
       abi: Pool
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
         - SynthUpdated
@@ -175,7 +175,7 @@ templates:
       abi: Synth
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       abis:
         - name: Synth
@@ -195,5 +195,4 @@ templates:
           handler: handleTransfer
         - event: Referred(indexed address,indexed address)
           handler: handleReferred
-
       file: ./src/synth.ts

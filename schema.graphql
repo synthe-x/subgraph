@@ -177,6 +177,11 @@ type Account @entity {
   totalMintUSD: BigDecimal!
   totalBurnUSD: BigDecimal!
   referredBy: String!
+  referredEarnedUSD: BigDecimal!
+  referredVolumeUSD: BigDecimal!
+  createdAt: BigInt!
+  txnCount: Int!
+  firstTxnRevenueUSD: BigDecimal!
   accountDayData: [AccountDayData!]! @derivedFrom(field: "account")
   positions: [AccountPosition!]! @derivedFrom(field: "account")
   mint: [Mint!]! @derivedFrom(field: "account")

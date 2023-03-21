@@ -166,14 +166,19 @@ export function gocCollateral(id: string, pool: Pool): Collateral {
 	return collateral as Collateral;
 }
 
-export function gocAccount(id: string): Account {
+export function gocAccount(id: string, event:ethereum.Event ): Account {
 	let account = Account.load(id);
 	if (account == null) {
 		account = new Account(id);
+		account.createdAt = event.block.timestamp
 		account.totalPoint = ZERO_BD;
+		account.referredEarnedUSD = ZERO_BD;
+		account	.referredVolumeUSD = ZERO_BD;
 		account.totalMintUSD = ZERO_BD;
 		account.totalBurnUSD = ZERO_BD;
-		account.referredBy = ADDRESS_ZERO.toString();
+		account.firstTxnRevenueUSD = ZERO_BD;
+		account.referredBy = ADDRESS_ZERO.toHex();
+		account.txnCount = 0;
 		account.save();
 	}
 	return account as Account;

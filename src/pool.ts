@@ -77,7 +77,7 @@ export function handleCollateralEntered(event: CollateralEntered): void {
     let pool = gocPool(event.address.toHex());
     pool = updatePoolPrices(pool);
     let collateral = gocCollateral(event.params.collateral.toHex(), pool);
-    let account = gocAccount(event.params.user.toHex());
+    let account = gocAccount(event.params.user.toHex(), event);
     let accountPosition = gocAccountPosition(event.params.user.toHex(), pool.id);
     let accountBalance = gocAccountBalance(accountPosition.id, collateral.id);
     let token = gocToken(event.params.collateral.toHex());
@@ -103,7 +103,7 @@ export function handleCollateralExited(event: CollateralExited): void {
     let pool = gocPool(event.address.toHex());
     pool = updatePoolPrices(pool);
     let collateral = gocCollateral(event.params.collateral.toHex(), pool);
-    let account = gocAccount(event.params.user.toHex());
+    let account = gocAccount(event.params.user.toHex(), event);
     let accountPosition = gocAccountPosition(event.params.user.toHex(), pool.id);
     let accountBalance = gocAccountBalance(accountPosition.id, collateral.id);
     let token = gocToken(event.params.collateral.toHex());
@@ -127,7 +127,7 @@ export function handleDeposit(event: Deposit): void {
     pool = updatePoolPrices(pool);
     let collateral = gocCollateral(event.params.asset.toHex(), pool);
     let token = gocToken(event.params.asset.toHex());
-    let account = gocAccount(event.params.user.toHex());
+    let account = gocAccount(event.params.user.toHex(), event);
     let accountPosition = gocAccountPosition(event.params.user.toHex(), pool.id);
     let accountBalance = gocAccountBalance(accountPosition.id, collateral.id);
 
@@ -151,7 +151,7 @@ export function handleWithdraw(event: Withdraw): void {
     let pool = gocPool(event.address.toHex());
     pool = updatePoolPrices(pool);
     let collateral = gocCollateral(event.params.asset.toHex(), pool);
-    let account = gocAccount(event.params.user.toHex());
+    let account = gocAccount(event.params.user.toHex(), event);
     let accountPosition = gocAccountPosition(event.params.user.toHex(), pool.id);
     let accountBalance = gocAccountBalance(accountPosition.id, collateral.id);
     let token = gocToken(event.params.asset.toHex());
@@ -230,7 +230,7 @@ function handleMint(event: Transfer): void {
     accountPosition.totalBorrowUSD = accountPosition.totalBorrowUSD.plus(borrow.amount.div(borrow.totalSupply).times(borrow.totalDebtUSD));
 
     let accountPositionDayData = gocAccountPositionDayData(event, accountPosition);
-    
+
     let accountPositionHrData = gocAccountPositionHrData(event, accountPosition);
 
     borrow.save()
@@ -257,13 +257,14 @@ function handleBurn(event: Transfer): void {
     pool = updatePoolDebt(pool);
     let poolDayData = gocPoolDayData(pool, event);
     poolDayData.dailyDebtBurnedUSD = poolDayData.dailyDebtBurnedUSD.plus(amountUSD);
-   let poolHrData = gocPoolHrData(pool, event);
-   poolHrData.hrDebtIssuedUSD = poolHrData.hrDebtIssuedUSD.plus(amountUSD);
-   poolHrData.save();
+    let poolHrData = gocPoolHrData(pool, event);
+    poolHrData.hrDebtIssuedUSD = poolHrData.hrDebtIssuedUSD.plus(amountUSD);
+    poolHrData.save();
 
     let accountPositionDayData = gocAccountPositionDayData(event, accountPosition);
 
     let accountPositionHrData = gocAccountPositionHrData(event, accountPosition);
+
     poolDayData.save();
     pool.save();
     repay.save()

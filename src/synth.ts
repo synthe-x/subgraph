@@ -1,10 +1,11 @@
-import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt, log } from "@graphprotocol/graph-ts";
 import { Transfer } from "../generated/Crypto Market/ERC20";
 import { ADDRESS_ZERO, BASIS_POINTS, PRICE_DECIMALS, BASIS_POINTS_BD, rate, TO_ETH_BD, ZERO_BD } from './helpers/const';
 import { gocToken, gocSynth, gocPool, gocPoolDayData, gocAccount, gocSynthDayData, gocMint, gocBurn, gocAccountDayData, gocPoolHrData } from './helpers/goc';
 import { updatePoolDebt } from "./helpers/update/debt";
 import { getTokenPrice, updatePoolPrices } from './helpers/update/price';
 import { Referred } from "../generated/templates/Synth/Synth"
+import { Account } from "../generated/schema";
 export function handleTransfer(event: Transfer): void {
     if (event.params.from.equals(ADDRESS_ZERO)) {
         handleMint(event);
@@ -49,7 +50,7 @@ function handleMint(event: Transfer): void {
     mint.amount = event.params.value.toBigDecimal().div(TO_ETH_BD);
     mint.priceUSD = synth.priceUSD;
 
-    let account = gocAccount(event.params.to.toHex());
+    let account = gocAccount(event.params.to.toHex(), event);
     let newPoint = event.params.value.toBigDecimal().div(TO_ETH_BD).times(synth.priceUSD).times(rate(event.block.timestamp.toBigDecimal()));
     account.totalPoint = account.totalPoint.plus(newPoint);
     account.totalMintUSD = account.totalMintUSD.plus(mint.amount.times(synth.priceUSD));
@@ -57,6 +58,21 @@ function handleMint(event: Transfer): void {
     let accountDayData = gocAccountDayData(event, account.id);
     accountDayData.dailyMintedUSD = accountDayData.dailyMintedUSD.plus(mint.amount.times(synth.priceUSD));
     accountDayData.dailyPoint = accountDayData.dailyPoint.plus(newPoint);
+
+    if (account.txnCount == 0) {
+        account.firstTxnRevenueUSD = revenueUSD;
+    }
+
+    if (Address.fromHexString(account.referredBy).notEqual(Address.fromHexString(ADDRESS_ZERO.toHex()))) {
+        let refAccount = Account.load(account.referredBy);
+        if (refAccount) {
+
+            refAccount.referredEarnedUSD = refAccount.referredEarnedUSD.plus(revenueUSD.times(BigDecimal.fromString("0.1")));
+            refAccount.referredVolumeUSD = refAccount.referredVolumeUSD.plus(mint.amount.times(synth.priceUSD))
+            refAccount.save()
+        }
+    }
+    account.txnCount = account.txnCount + 1;
     accountDayData.save();
     account.save();
     mint.save()
@@ -105,15 +121,29 @@ function handleBurn(event: Transfer): void {
     burn.amount = event.params.value.toBigDecimal().div(TO_ETH_BD);
     burn.priceUSD = synth.priceUSD;
 
-    let account = gocAccount(event.params.from.toHex());
+    let account = gocAccount(event.params.from.toHex(), event);
     let newPoint = event.params.value.toBigDecimal().div(TO_ETH_BD).times(synth.priceUSD).times(rate(event.block.timestamp.toBigDecimal()));
     account.totalPoint = account.totalPoint.plus(newPoint);
     account.totalBurnUSD = account.totalBurnUSD.plus(burn.amount.times(synth.priceUSD));
 
     let accountDayData = gocAccountDayData(event, account.id);
     accountDayData.dailyBurnedUSD = accountDayData.dailyBurnedUSD.plus(burn.amount.times(synth.priceUSD));
-    accountDayData.dailyPoint = accountDayData.dailyPoint.plus(newPoint);
 
+    if (account.txnCount == 0) {
+        account.firstTxnRevenueUSD = revenueUSD;
+    }
+
+    if (Address.fromHexString(account.referredBy).notEqual(Address.fromHexString(ADDRESS_ZERO.toHex()))) {
+
+        let refAccount = Account.load(account.referredBy);
+        if (refAccount) {
+            refAccount.referredEarnedUSD = refAccount.referredEarnedUSD.plus(revenueUSD.times(BigDecimal.fromString("0.1")));
+            refAccount.referredVolumeUSD = refAccount.referredVolumeUSD.plus(burn.amount.times(synth.priceUSD))
+            refAccount.save()
+        }
+
+    }
+    account.txnCount = account.txnCount + 1;
     accountDayData.save();
     account.save();
     burn.save();
@@ -126,14 +156,41 @@ function handleBurn(event: Transfer): void {
     poolHrData.save();
 }
 
-function handleReferred(event: Referred): void {
-    let account = gocAccount(event.params.account.toString());
-    if (account.referredBy == ADDRESS_ZERO.toString() && account.totalMintUSD === ZERO_BD) {
-        account.referredBy = event.params.referredBy.toString();
-        account.save()
+export function handleReferred(event: Referred): void {
+
+    let account = gocAccount(event.params.account.toHex(), event);
+
+    if (
+        account.txnCount <= 1 &&
+        event.params.referredBy.toHex() != event.params.account.toHex() &&
+        Account.load(event.params.referredBy.toHex()) != null
+    ) {
+
+        account.referredBy = event.params.referredBy.toHex();
+        account.save();
+        let refAccount = Account.load(event.params.referredBy.toHex());
+        if (refAccount) {
+            refAccount.referredVolumeUSD = refAccount.referredVolumeUSD.plus(account.totalMintUSD.plus(account.totalBurnUSD));
+            refAccount.referredEarnedUSD = refAccount.referredEarnedUSD.plus(account.firstTxnRevenueUSD.times(BigDecimal.fromString("0.1")));
+            refAccount.save();
+        }
     }
 }
+/*
 
+{
+    accounts{
+    id
+    referredBy
+    referredEarnedUSD
+    referredVolumeUSD
+    txnCount
+    totalMintUSD
+    totalBurnUSD
+    
+  }
+}
 
+*/
 
 

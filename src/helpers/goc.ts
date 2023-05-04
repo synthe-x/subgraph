@@ -16,6 +16,8 @@ import {
 	AccountPositionDayData,
 	PoolHrData,
 	AccountPositionHrData,
+	TotalSynthsMinted,
+
 
 } from "../../generated/schema";
 import { ADDRESS_ZERO, ONE_BI, ZERO_BI, ETH_ADDRESS, ZERO_BD } from './const';
@@ -121,12 +123,12 @@ export function gocToken(id: string): Token {
 			if (!name.reverted) {
 				token.name = name.value;
 			}
-			if(token.name == "Wrapped Ether") token.name = "Ethereum";
+			if (token.name == "Wrapped Ether") token.name = "Ethereum";
 			const symbol = tokenContract.try_symbol();
 			if (!symbol.reverted) {
 				token.symbol = symbol.value;
 			}
-			if(token.symbol == "WETH") token.symbol = "ETH";
+			if (token.symbol == "WETH") token.symbol = "ETH";
 			const decimals = tokenContract.try_decimals();
 			if (!decimals.reverted) {
 				token.decimals = decimals.value;
@@ -175,14 +177,14 @@ export function gocCollateral(id: string, pool: Pool): Collateral {
 	return collateral as Collateral;
 }
 
-export function gocAccount(id: string, event:ethereum.Event ): Account {
+export function gocAccount(id: string, event: ethereum.Event): Account {
 	let account = Account.load(id);
 	if (account == null) {
 		account = new Account(id);
 		account.createdAt = event.block.timestamp
 		account.totalPoint = ZERO_BD;
 		account.referredEarnedUSD = ZERO_BD;
-		account	.referredVolumeUSD = ZERO_BD;
+		account.referredVolumeUSD = ZERO_BD;
 		account.totalMintUSD = ZERO_BD;
 		account.totalBurnUSD = ZERO_BD;
 		account.firstTxnRevenueUSD = ZERO_BD;
@@ -375,7 +377,7 @@ export function gocBurn
 
 export function gocAccountDayData(
 	event: ethereum.Event,
-	account: string
+	account: string,
 ): AccountDayData {
 	let id = account + "-" + (event.block.timestamp.toI32() / 86400).toString();
 	let accountDayData = AccountDayData.load(id);
@@ -437,8 +439,7 @@ export function gocPoolHrData(
 export function gocAccountPositionHrData(
 	event: ethereum.Event,
 	accountPosition: AccountPosition
-): AccountPositionHrData
-{
+): AccountPositionHrData {
 	let id = accountPosition.id + "-" + (event.block.timestamp.toI32() / 3600).toString();
 	let accountPositionHrData = AccountPositionHrData.load(id);
 	if (accountPositionHrData == null) {
@@ -449,4 +450,21 @@ export function gocAccountPositionHrData(
 	}
 	accountPositionHrData.hrBalance = accountPosition.balance
 	return accountPositionHrData as AccountPositionHrData;
+}
+
+export function gocTotalSynthsMinted(
+	synth: string,
+	account: string,
+	accountDayData: AccountDayData
+): TotalSynthsMinted {
+	let id = account + "-" + synth+ "-"+ (accountDayData.dayId.toString());
+	let totalSynthsMinted = TotalSynthsMinted.load(id);
+	if (totalSynthsMinted == null) {
+		totalSynthsMinted = new TotalSynthsMinted(id);
+		totalSynthsMinted.account = account;
+		totalSynthsMinted.amount = ZERO_BD;
+		totalSynthsMinted.synth = synth;
+		totalSynthsMinted.accountDayData = accountDayData.id;
+	}
+	return totalSynthsMinted as TotalSynthsMinted
 }

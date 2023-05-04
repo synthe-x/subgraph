@@ -133,7 +133,7 @@ type Synth @entity {
   token: Token!
   isFeeToken: Boolean!
   synthDayData: [SynthDayData!]! @derivedFrom(field: "synth")
-  
+
   ## Activity
   cumulativeMinted: BigInt!
   cumulativeBurned: BigInt!
@@ -183,6 +183,7 @@ type AccountDayData @entity {
   dailyPoint: BigDecimal!
   dailyMintedUSD: BigDecimal!
   dailyBurnedUSD: BigDecimal!
+  dailySynthsMinted:  [TotalSynthsMinted!]! @derivedFrom(field: "accountDayData")
 }
 
 type Account @entity {
@@ -200,6 +201,7 @@ type Account @entity {
   positions: [AccountPosition!]! @derivedFrom(field: "account")
   mint: [Mint!]! @derivedFrom(field: "account")
   burn: [Burn!]! @derivedFrom(field: "account")
+  totalSynthsMinted: [TotalSynthsMinted!]! @derivedFrom(field: "account")
 }
 
 type AccountPosition @entity {
@@ -270,6 +272,14 @@ type Mint @entity {
   synth: Synth!
   amount: BigDecimal!
   priceUSD: BigDecimal!
+}
+
+type TotalSynthsMinted @entity {
+  id: ID!
+  account: Account!
+  synth: Synth!
+  amount: BigDecimal!
+  accountDayData: AccountDayData!
 }
 
 type Burn @entity {

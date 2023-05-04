@@ -1,0 +1,11 @@
+{
+    "address": "0xFEf12BaA6be826C322FC7C400135f9b6513D06eE",
+    "network": "zkSync2-testnet",
+    "start": 4991824,
+    "pools": [
+        {
+            "name": "Crypto Market",
+            "address": "0x01E0B5bC50110F498F7E7e8F12c95d4b138572fc"
+        }
+    ]
+}

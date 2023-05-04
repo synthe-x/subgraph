@@ -21,16 +21,21 @@ type Pool @entity {
   # Params
   feeToken: String!
   issuerAlloc: BigInt!
-  oracle: String!
   paused: Boolean!
   totalSupply: BigInt!
   totalDebtUSD: BigDecimal!
 
   "Total revenue and burn by the pool"
   totalRevenueUSD: BigDecimal!
+  totalVolumeUSD: BigDecimal!
   totalBurnUSD: BigDecimal!
   poolDayData: [PoolDayData!]! @derivedFrom(field: "pool")
   poolHrData: [PoolHrData!]! @derivedFrom(field: "pool")
+
+  oracle: String!
+  fallbackOracle: String!
+  pyth: String
+
   # Assets
   synthIds: [String!]!
   collateralIds: [String!]!
@@ -126,13 +131,17 @@ type Synth @entity {
   mintFee: BigInt!
   burnFee: BigInt!
   token: Token!
+  isFeeToken: Boolean!
   synthDayData: [SynthDayData!]! @derivedFrom(field: "synth")
+  
   ## Activity
   cumulativeMinted: BigInt!
   cumulativeBurned: BigInt!
   totalSupply: BigInt!
 
   ## Price Data
+  feed: String
+  fallbackFeed: String
   priceUSD: BigDecimal!
   lastPriceUpdate: Int!
 }
@@ -142,6 +151,8 @@ type Collateral @entity {
   id: ID!
   pool: Pool!
   token: Token!
+
+  isPermit: Boolean!
 
   ## Params
   isActive: Boolean!
@@ -157,7 +168,10 @@ type Collateral @entity {
   cumulativeEnteredPositions: Int!
   cumulativeExitedPositions: Int!
   collateralDayData: [CollateralDayData!]! @derivedFrom(field: "collateral")
+
   ## Price Data
+  feed: String
+  fallbackFeed: String
   priceUSD: BigDecimal!
   lastPriceUpdate: Int!
 }

@@ -4,16 +4,25 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "prepare": "mustache ./config.json template.yaml > subgraph.yaml",
-    "deploy:dev": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-dev",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-dev2",
+
+    "prepare:testnet": "mustache ./networks/arbGoerli.json template.yaml > subgraph.yaml",
+    "prepare:mainnet": "mustache ./networks/arbitrum.json template.yaml > subgraph.yaml",
+    "prepare:zksyncGoerli": "mustache ./networks/zksyncGoerli.json template.yaml > subgraph.yaml",
+
+    "deploy:dev:mainnet": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-mainnet-dev",
+    "deploy:main:mainnet": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-mainnet",
+    "deploy:dev:testnet": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-testnet-dev",
+    "deploy:main:testnet": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-testnet",
+    "deploy:zksyncGoerli": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-zksyncgoerli",
+
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex",
     "create-local": "graph create --node http://localhost:8020/ prasad-kumkar/synthex-dev",
     "remove-local": "graph remove --node http://localhost:8020/ prasad-kumkar/synthex",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 prasad-kumkar/synthex"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.29.0",
-    "@graphprotocol/graph-ts": "0.26.0",
+    "@graphprotocol/graph-cli": "^0.48.0",
+    "@graphprotocol/graph-ts": "^0.29.3",
     "mustache": "^4.2.0"
   }
 }

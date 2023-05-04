@@ -36,7 +36,3 @@ export function rate(timestamp: BigDecimal): BigDecimal {
     }
     return rate
 }
-
-
-
-

@@ -1,4 +1,4 @@
-import { Address, Bytes, BigInt, ethereum, BigDecimal } from "@graphprotocol/graph-ts";
+import { Address, Bytes, BigInt, ethereum, BigDecimal, log } from "@graphprotocol/graph-ts";
 import {
 	Pool,
 	Protocol,
@@ -85,6 +85,7 @@ export function gocSynth(id: string, pool: Pool | null = null): Synth {
 		synth.token = gocToken(id).id;
 		synth.priceUSD = ZERO_BD;
 		synth.lastPriceUpdate = 0;
+		synth.isFeeToken = false;
 
 		synth.cumulativeMinted = ZERO_BI;
 		synth.cumulativeBurned = ZERO_BI;
@@ -120,10 +121,12 @@ export function gocToken(id: string): Token {
 			if (!name.reverted) {
 				token.name = name.value;
 			}
+			if(token.name == "Wrapped Ether") token.name = "Ethereum";
 			const symbol = tokenContract.try_symbol();
 			if (!symbol.reverted) {
 				token.symbol = symbol.value;
 			}
+			if(token.symbol == "WETH") token.symbol = "ETH";
 			const decimals = tokenContract.try_decimals();
 			if (!decimals.reverted) {
 				token.decimals = decimals.value;
@@ -142,6 +145,12 @@ export function gocCollateral(id: string, pool: Pool): Collateral {
 		collateral = new Collateral(_id);
 		collateral.pool = pool.id;
 		collateral.token = gocToken(id).id;
+		collateral.isPermit = false;
+		// const erc20Contract = ERC20.bind(Address.fromString(id));
+		// const nonce = erc20Contract.try_nonces(Address.fromString(pool.id));
+		// if (!nonce.reverted) {
+		// 	collateral.isPermit = true;
+		// }
 
 		collateral.isActive = true;
 		collateral.cap = ZERO_BI;

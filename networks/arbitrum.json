@@ -1,0 +1,15 @@
+{
+    "address": "0x7F7dcdA6981e0993852D3Cf8641d9F68dfC81659",
+    "network": "arbitrum-one",
+    "start": 82762407,
+    "pools": [
+        {
+            "name": "Crypto Market",
+            "address": "0x8d6E834277E4f513BacF83B0A87524c913eF8691"
+        },
+        {
+            "name": "Foreign Exchange",
+            "address": "0x0546458d110Dff9D394C0F4621423Bc8f009A779"
+        }
+    ]
+}

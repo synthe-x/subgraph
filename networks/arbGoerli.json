@@ -1,0 +1,15 @@
+{
+    "address": "0xf99Ee3c876aaa586511051B085991f0221De1fd7",
+    "network": "arbitrum-goerli",
+    "start": 18322100,
+    "pools": [
+        {
+            "name": "Crypto Market",
+            "address": "0x77498BF546D18452eD386b84E762e87d7a3CA00e"
+        }, 
+        {
+            "name": "Foreign Exchange",
+            "address": "0x1E30a77c9133ce7600A50A64b73C4B32913ad4B4"
+        }
+    ]
+}

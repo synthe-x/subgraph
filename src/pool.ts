@@ -284,8 +284,8 @@ function handleMint(event: Transfer): void {
     let borrow = gocBorrow(event, accountPosition.id);
     borrow.amount = event.params.value.toBigDecimal();
     borrow.totalSupply = pool.totalSupply.toBigDecimal();
-    borrow.totalDebtUSD = pool.totalDebtUSD;
-    accountPosition.totalBorrowUSD = accountPosition.totalBorrowUSD.plus(borrow.amount.div(borrow.totalSupply).times(borrow.totalDebtUSD));
+    // borrow.totalDebtUSD = pool.totalDebtUSD;
+    // accountPosition.totalBorrowUSD = accountPosition.totalBorrowUSD.plus(borrow.amount.div(borrow.totalSupply).times(borrow.totalDebtUSD));
 
     let accountPositionDayData = gocAccountPositionDayData(event, accountPosition);
 
@@ -302,12 +302,12 @@ function handleBurn(event: Transfer): void {
     pool = updatePoolPrices(pool);
     let accountPosition = gocAccountPosition(event.params.from.toHex(), pool.id);
     let amountUSD = event.params.value.toBigDecimal().div(pool.totalSupply.toBigDecimal()).times(pool.totalDebtUSD);
-    accountPosition.totalRepayUSD = accountPosition.totalRepayUSD.plus(amountUSD);
+    // accountPosition.totalRepayUSD = accountPosition.totalRepayUSD.plus(amountUSD);
 
     let repay = gocRepay(event, accountPosition.id);
     repay.amount = event.params.value.toBigDecimal();
     repay.totalSupply = pool.totalSupply.toBigDecimal();
-    repay.totalDebtUSD = pool.totalDebtUSD;
+    // repay.totalDebtUSD = pool.totalDebtUSD;
 
     pool.totalSupply = pool.totalSupply.minus(event.params.value);
     accountPosition.balance = accountPosition.balance.minus(event.params.value);

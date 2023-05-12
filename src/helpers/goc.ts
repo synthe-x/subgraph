@@ -17,6 +17,7 @@ import {
 	PoolHrData,
 	AccountPositionHrData,
 	TotalSynthsMinted,
+	DailySynthsMinted,
 
 
 } from "../../generated/schema";
@@ -188,12 +189,12 @@ export function gocAccount(id: string, event: ethereum.Event): Account {
 	if (account == null) {
 		account = new Account(id);
 		account.createdAt = event.block.timestamp
-		account.totalPoint = ZERO_BD;
-		account.referredEarnedUSD = ZERO_BD;
-		account.referredVolumeUSD = ZERO_BD;
-		account.totalMintUSD = ZERO_BD;
-		account.totalBurnUSD = ZERO_BD;
-		account.firstTxnRevenueUSD = ZERO_BD;
+		// account.totalPoint = ZERO_BD;
+		// account.referredEarnedUSD = ZERO_BD;
+		// account.referredVolumeUSD = ZERO_BD;
+		// account.totalMintUSD = ZERO_BD;
+		// account.totalBurnUSD = ZERO_BD;
+		account.firstTxnRevenue = ZERO_BD;
 		account.referredBy = ADDRESS_ZERO.toHex();
 		account.txnCount = 0;
 		account.save();
@@ -212,8 +213,8 @@ export function gocAccountPosition(
 		accountPosition.account = account;
 		accountPosition.pool = pool;
 		accountPosition.balance = ZERO_BI;
-		accountPosition.totalBorrowUSD = ZERO_BD;
-		accountPosition.totalRepayUSD = ZERO_BD;
+		// accountPosition.totalBorrowUSD = ZERO_BD;
+		// accountPosition.totalRepayUSD = ZERO_BD;
 		accountPosition.save();
 	}
 	return accountPosition as AccountPosition;
@@ -322,7 +323,7 @@ export function gocBorrow
 		borrow.amount = ZERO_BD;
 		borrow.accountPosition = accountPosition;
 		borrow.totalSupply = ZERO_BD;
-		borrow.totalDebtUSD = ZERO_BD;
+		// borrow.totalDebtUSD = ZERO_BD;
 		borrow.save();
 	}
 	return borrow as Borrow
@@ -339,7 +340,7 @@ export function gocRepay
 		repay.amount = ZERO_BD;
 		repay.accountPosition = accountPosition;
 		repay.totalSupply = ZERO_BD;
-		repay.totalDebtUSD = ZERO_BD;
+		// repay.totalDebtUSD = ZERO_BD;
 		repay.save();
 	}
 	return repay as Repay
@@ -357,7 +358,7 @@ export function gocMint
 		mint = new Mint(id);
 		mint.account = account;
 		mint.amount = ZERO_BD;
-		mint.priceUSD = ZERO_BD;
+		// mint.priceUSD = ZERO_BD;
 		mint.synth = synth;
 	}
 	return mint as Mint
@@ -391,9 +392,9 @@ export function gocAccountDayData(
 		accountDayData = new AccountDayData(id);
 		accountDayData.dayId = event.block.timestamp.toI32() / 86400;
 		accountDayData.account = account;
-		accountDayData.dailyPoint = ZERO_BD;
-		accountDayData.dailyMintedUSD = ZERO_BD;
-		accountDayData.dailyBurnedUSD = ZERO_BD;
+		// accountDayData.dailyPoint = ZERO_BD;
+		// accountDayData.dailyMintedUSD = ZERO_BD;
+		// accountDayData.dailyBurnedUSD = ZERO_BD;
 	}
 
 	return accountDayData as AccountDayData
@@ -461,16 +462,31 @@ export function gocAccountPositionHrData(
 export function gocTotalSynthsMinted(
 	synth: string,
 	account: string,
-	accountDayData: AccountDayData
 ): TotalSynthsMinted {
-	let id = account + "-" + synth+ "-"+ (accountDayData.dayId.toString());
+	let id = account + "-" + synth;
 	let totalSynthsMinted = TotalSynthsMinted.load(id);
 	if (totalSynthsMinted == null) {
 		totalSynthsMinted = new TotalSynthsMinted(id);
 		totalSynthsMinted.account = account;
 		totalSynthsMinted.amount = ZERO_BD;
-		totalSynthsMinted.synth = synth;
-		totalSynthsMinted.accountDayData = accountDayData.id;
+		totalSynthsMinted.synth = synth;	
 	}
 	return totalSynthsMinted as TotalSynthsMinted
+}
+
+export function gocDailySynthsMinted(
+	synth: string,
+	account: string,
+	accountDayData: AccountDayData
+): DailySynthsMinted {
+	let id = account + "-" + synth+ "-"+ (accountDayData.dayId.toString());
+	let dailySynthsMinted = DailySynthsMinted.load(id);
+	if (dailySynthsMinted == null) {
+		dailySynthsMinted = new DailySynthsMinted(id);
+		dailySynthsMinted.account = account;
+		dailySynthsMinted.amount = ZERO_BD;
+		dailySynthsMinted.synth = synth;
+		dailySynthsMinted.accountDayData = accountDayData.id;
+	}
+	return dailySynthsMinted as DailySynthsMinted
 }

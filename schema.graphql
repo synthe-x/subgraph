@@ -184,23 +184,23 @@ type AccountDayData @entity {
   id: ID!
   dayId: Int!
   account: Account!
-  dailyPoint: BigDecimal!
-  dailyMintedUSD: BigDecimal!
-  dailyBurnedUSD: BigDecimal!
-  dailySynthsMinted:  [TotalSynthsMinted!]! @derivedFrom(field: "accountDayData")
+  # dailyPoint: BigDecimal!
+  # dailyMintedUSD: BigDecimal!
+  # dailyBurnedUSD: BigDecimal!
+  dailySynthsMinted:  [DailySynthsMinted!]! @derivedFrom(field: "accountDayData")
 }
 
 type Account @entity {
   id: ID!
-  totalPoint: BigDecimal!
-  totalMintUSD: BigDecimal!
-  totalBurnUSD: BigDecimal!
+  # totalPoint: BigDecimal!
+  # totalMintUSD: BigDecimal!
+  # totalBurnUSD: BigDecimal!
   referredBy: String!
-  referredEarnedUSD: BigDecimal!
-  referredVolumeUSD: BigDecimal!
+  # referredEarnedUSD: BigDecimal!
+  # referredVolumeUSD: BigDecimal!
   createdAt: BigInt!
   txnCount: Int!
-  firstTxnRevenueUSD: BigDecimal!
+  firstTxnRevenue: BigDecimal!  #firstTxnRevenueUSD name before
   accountDayData: [AccountDayData!]! @derivedFrom(field: "account")
   positions: [AccountPosition!]! @derivedFrom(field: "account")
   mint: [Mint!]! @derivedFrom(field: "account")
@@ -214,8 +214,8 @@ type AccountPosition @entity {
   account: Account!
   pool: Pool!
   balance: BigInt!
-  totalBorrowUSD: BigDecimal!
-  totalRepayUSD: BigDecimal!
+  # totalBorrowUSD: BigDecimal!
+  # totalRepayUSD: BigDecimal!
   collateralBalances: [AccountBalance!]! @derivedFrom(field: "accountPosition")
   borrow: [Borrow!]! @derivedFrom(field: "accountPosition")
   repay: [Repay!]! @derivedFrom(field: "accountPosition")
@@ -259,7 +259,7 @@ type Borrow @entity {
   accountPosition: AccountPosition!
   amount: BigDecimal!
   totalSupply: BigDecimal!
-  totalDebtUSD: BigDecimal!
+  # totalDebtUSD: BigDecimal!
 }
 
 type Repay @entity {
@@ -267,10 +267,18 @@ type Repay @entity {
   accountPosition: AccountPosition!
   amount: BigDecimal!
   totalSupply: BigDecimal!
-  totalDebtUSD: BigDecimal!
+  # totalDebtUSD: BigDecimal!
 }
 
 type Mint @entity {
+  id: ID!
+  account: Account!
+  synth: Synth!
+  amount: BigDecimal!
+  # priceUSD: BigDecimal!
+}
+
+type Burn @entity {
   id: ID!
   account: Account!
   synth: Synth!
@@ -283,13 +291,14 @@ type TotalSynthsMinted @entity {
   account: Account!
   synth: Synth!
   amount: BigDecimal!
-  accountDayData: AccountDayData!
 }
 
-type Burn @entity {
+type DailySynthsMinted @entity {
   id: ID!
   account: Account!
   synth: Synth!
   amount: BigDecimal!
-  priceUSD: BigDecimal!
+  accountDayData: AccountDayData!
 }
+
+

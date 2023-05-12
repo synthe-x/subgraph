@@ -4,16 +4,17 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
+    "deploy:dev": "yarn deploy:dev:mainnet && yarn deploy:dev:testnet && yarn deploy:zksyncGoerli",
 
     "prepare:testnet": "mustache ./networks/arbGoerli.json template.yaml > subgraph.yaml",
     "prepare:mainnet": "mustache ./networks/arbitrum.json template.yaml > subgraph.yaml",
     "prepare:zksyncGoerli": "mustache ./networks/zksyncGoerli.json template.yaml > subgraph.yaml",
 
-    "deploy:dev:mainnet": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-mainnet-dev",
+    "deploy:dev:mainnet": "yarn prepare:mainnet && yarn codegen && graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-mainnet-dev",
     "deploy:main:mainnet": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-mainnet",
-    "deploy:dev:testnet": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-testnet-dev",
-    "deploy:main:testnet": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-testnet",
-    "deploy:zksyncGoerli": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-zksyncgoerli",
+    "deploy:dev:testnet": "yarn prepare:testnet && yarn codegen && graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-testnet-dev",
+    "deploy:main:testnet": "yarn prepare:testnet && yarn codegen && graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-testnet",
+    "deploy:zksyncGoerli": "yarn prepare:zksyncGoerli && yarn codegen && graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-zksyncgoerli",
 
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex",
     "create-local": "graph create --node http://localhost:8020/ prasad-kumkar/synthex-dev",

@@ -4,10 +4,10 @@ schema:
 dataSources:
   - kind: ethereum
     name: SyntheX
-    network: arbitrum-one
+    network: zkSync2-testnet
     source:
-      address: "0x7F7dcdA6981e0993852D3Cf8641d9F68dfC81659"
-      startBlock: 82762407
+      address: "0xFEf12BaA6be826C322FC7C400135f9b6513D06eE"
+      startBlock: 4991824
       abi: SyntheX
     mapping:
       kind: ethereum/events
@@ -51,76 +51,10 @@ dataSources:
       file: ./src/protocol.ts
   - kind: ethereum
     name: Crypto Market
-    network: arbitrum-one
+    network: zkSync2-testnet
     source:
-      address: "0x8d6E834277E4f513BacF83B0A87524c913eF8691"
-      startBlock: 82762407
-      abi: Pool
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      entities:
-        - SynthUpdated
-        - SynthRemoved
-        - CollateralParamsUpdated
-        - CollateralEntered
-        - CollateralExited
-        - Paused
-        - Unpaused
-        - Deposit
-        - Withdraw
-        - IssuerAllocUpdated
-        - IssuerPriceOracleUpdated
-        - FeeTokenUpdated
-        - Transfer
-      abis:
-        - name: Pool
-          file: ./abis/Pool.json
-        - name: PriceOracle
-          file: ./abis/PriceOracle.json
-        - name: ERC20
-          file: ./abis/ERC20.json
-        - name: PriceOracle
-          file: ./abis/PriceOracle.json
-        - name: PriceOracle2
-          file: ./abis/PriceOracle2.json
-      eventHandlers:
-        - event: SynthUpdated(indexed address,bool,bool,uint256,uint256)
-          handler: handleSynthUpdated
-        - event: SynthRemoved(indexed address)
-          handler: handleSynthRemoved
-        - event: CollateralParamsUpdated(indexed address,uint256,uint256,uint256,uint256,bool)
-          handler: handleCollateralParamsUpdated
-        - event: CollateralEntered(indexed address,indexed address)
-          handler: handleCollateralEntered
-        - event: CollateralExited(indexed address,indexed address)
-          handler: handleCollateralExited
-        - event: Deposit(indexed address,indexed address,uint256)
-          handler: handleDeposit
-        - event: Withdraw(indexed address,indexed address,uint256)
-          handler: handleWithdraw
-        - event: Liquidate(indexed address,indexed address,indexed address,uint256,uint256,uint256)
-          handler: handleLiquidate
-        - event: IssuerAllocUpdated(uint256)
-          handler: handleIssuerAllocUpdated
-        - event: PriceOracleUpdated(indexed address)
-          handler: handlePriceOracleUpdated
-        - event: FeeTokenUpdated(indexed address)
-          handler: handleFeeTokenUpdated
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-        - event: Paused(address)
-          handler: handlePaused
-        - event: Unpaused(address)
-          handler: handleUnpaused
-      file: ./src/pool.ts
-  - kind: ethereum
-    name: Foreign Exchange
-    network: arbitrum-one
-    source:
-      address: "0x0546458d110Dff9D394C0F4621423Bc8f009A779"
-      startBlock: 82762407
+      address: "0x01E0B5bC50110F498F7E7e8F12c95d4b138572fc"
+      startBlock: 4991824
       abi: Pool
     mapping:
       kind: ethereum/events
@@ -184,7 +118,7 @@ dataSources:
 templates:
   - kind: ethereum
     name: Synth
-    network: arbitrum-one
+    network: zkSync2-testnet
     source:
       abi: Synth
     mapping:

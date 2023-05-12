@@ -48,10 +48,12 @@ export function gocPool(id: string): Pool {
 		pool.feeToken = ADDRESS_ZERO.toHex();
 		pool.issuerAlloc = ZERO_BI;
 		pool.oracle = ADDRESS_ZERO.toHex();
+		pool.fallbackOracle = ADDRESS_ZERO.toHex();
 		pool.paused = false;
 
 		pool.totalSupply = ZERO_BI;
 		pool.totalDebtUSD = ZERO_BD;
+		pool.totalVolumeUSD = ZERO_BD;
 
 		pool.rewardTokens = new Array<string>();
 		pool.rewardSpeeds = new Array<BigInt>();
@@ -74,7 +76,7 @@ export function gocPool(id: string): Pool {
 	return pool as Pool;
 }
 
-export function gocSynth(id: string, pool: Pool | null = null): Synth {
+export function gocSynth(id: string, pool: Pool|null, event: ethereum.Event): Synth {
 	let synth = Synth.load(id);
 	if (synth == null) {
 		synth = new Synth(id);
@@ -98,6 +100,8 @@ export function gocSynth(id: string, pool: Pool | null = null): Synth {
 			_synthIds.push(id);
 			pool.synthIds = _synthIds;
 		}
+
+		synth.createdAt = event.block.timestamp.toI32();
 
 		synth.save();
 		SynthTemplate.create(Address.fromString(id));
@@ -140,7 +144,7 @@ export function gocToken(id: string): Token {
 	return token as Token;
 }
 
-export function gocCollateral(id: string, pool: Pool): Collateral {
+export function gocCollateral(id: string, pool: Pool, event: ethereum.Event): Collateral {
 	const _id = id + "-" + pool.id;
 	let collateral = Collateral.load(_id);
 	if (collateral == null) {
@@ -168,6 +172,8 @@ export function gocCollateral(id: string, pool: Pool): Collateral {
 
 		collateral.priceUSD = ZERO_BD;
 		collateral.lastPriceUpdate = 0;
+
+		collateral.createdAt = event.block.timestamp.toI32();
 
 		let _collateralIds = pool.collateralIds;
 		_collateralIds.push(_id);

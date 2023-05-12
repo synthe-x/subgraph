@@ -6,6 +6,7 @@ import { updatePoolDebt } from "./helpers/update/debt";
 import { getTokenPrice, updatePoolPrices } from './helpers/update/price';
 import { Referred } from "../generated/templates/Synth/Synth"
 import { Account } from "../generated/schema";
+
 export function handleTransfer(event: Transfer): void {
     if (event.params.from.equals(ADDRESS_ZERO)) {
         handleMint(event);
@@ -16,7 +17,7 @@ export function handleTransfer(event: Transfer): void {
 
 function handleMint(event: Transfer): void {
     const token = gocToken(event.address.toHex());
-    let synth = gocSynth(event.address.toHex());
+    let synth = gocSynth(event.address.toHex(), null, event);
     let pool = gocPool(synth.pool);
     pool = updatePoolDebt(pool);
     synth.priceUSD = getTokenPrice(token, pool);
@@ -93,7 +94,7 @@ function handleMint(event: Transfer): void {
 
 function handleBurn(event: Transfer): void {
     const token = gocToken(event.address.toHex());
-    let synth = gocSynth(event.address.toHex());
+    let synth = gocSynth(event.address.toHex(), null, event);
     let pool = gocPool(synth.pool);
     pool = updatePoolDebt(pool);
     synth.priceUSD = getTokenPrice(token, pool);
@@ -164,15 +165,12 @@ function handleBurn(event: Transfer): void {
 }
 
 export function handleReferred(event: Referred): void {
-
     let account = gocAccount(event.params.account.toHex(), event);
-
     if (
         account.txnCount <= 1 &&
         event.params.referredBy.toHex() != event.params.account.toHex() &&
         Account.load(event.params.referredBy.toHex()) != null
     ) {
-
         account.referredBy = event.params.referredBy.toHex();
         account.save();
         let refAccount = Account.load(event.params.referredBy.toHex());
@@ -183,21 +181,3 @@ export function handleReferred(event: Referred): void {
         }
     }
 }
-/*
-
-{
-    accounts{
-    id
-    referredBy
-    referredEarnedUSD
-    referredVolumeUSD
-    txnCount
-    totalMintUSD
-    totalBurnUSD
-    
-  }
-}
-
-*/
-
-

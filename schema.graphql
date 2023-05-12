@@ -144,6 +144,8 @@ type Synth @entity {
   fallbackFeed: String
   priceUSD: BigDecimal!
   lastPriceUpdate: Int!
+
+  createdAt: Int!
 }
 
 type Collateral @entity {
@@ -174,6 +176,8 @@ type Collateral @entity {
   fallbackFeed: String
   priceUSD: BigDecimal!
   lastPriceUpdate: Int!
+
+  createdAt: Int!
 }
 
 type AccountDayData @entity {

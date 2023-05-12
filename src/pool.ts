@@ -234,7 +234,7 @@ export function handlePriceOracleUpdated(event: PriceOracleUpdated): void {
         }
         collateral.save();
     }
-    PriceOracle
+    // PriceOracle
     pool.save();
 }
 

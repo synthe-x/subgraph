@@ -11,7 +11,7 @@
     "prepare:zksyncGoerli": "mustache ./networks/zksyncGoerli.json template.yaml > subgraph.yaml",
 
     "deploy:dev:mainnet": "yarn prepare:mainnet && yarn codegen && graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-mainnet-dev",
-    "deploy:main:mainnet": "graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-mainnet",
+    "deploy:main:mainnet": "yarn prepare:mainnet && yarn codegen && graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-mainnet",
     "deploy:dev:testnet": "yarn prepare:testnet && yarn codegen && graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-testnet-dev",
     "deploy:main:testnet": "yarn prepare:testnet && yarn codegen && graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-testnet",
     "deploy:zksyncGoerli": "yarn prepare:zksyncGoerli && yarn codegen && graph deploy --node https://api.thegraph.com/deploy/ prasad-kumkar/synthex-zksyncgoerli",

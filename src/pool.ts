@@ -39,7 +39,7 @@ export function handleUnpaused(event: Unpaused): void {
 export function handleSynthUpdated(event: SynthUpdated): void {
     let pool = gocPool(event.address.toHex());
     pool = updatePoolPrices(pool);
-    let synth = gocSynth(event.params.synth.toHex(), pool);
+    let synth = gocSynth(event.params.synth.toHex(), pool, event);
     let token = gocToken(event.params.synth.toHex());
     let oracleContract = PriceOracle.bind(Address.fromString(pool.oracle));
 
@@ -47,13 +47,13 @@ export function handleSynthUpdated(event: SynthUpdated): void {
     if(!res.reverted){
         synth.feed = res.value.toHex();
     }
-    if(pool.fallbackOracle !== ADDRESS_ZERO.toHex()){
-        let fallbackContract = PriceOracle2.bind(Address.fromString(pool.fallbackOracle));
-        let res = fallbackContract.try_getSourceOfAsset(Address.fromString(token.id));
-        if(!res.reverted){
-            synth.fallbackFeed = res.value.toHex();
-        }
-    }
+    // if(pool.fallbackOracle !== ADDRESS_ZERO.toHex()){
+    //     let fallbackContract = PriceOracle.bind(Address.fromString(pool.fallbackOracle));
+    //     let res = fallbackContract.try_getSourceOfAsset(Address.fromString(token.id));
+    //     if(!res.reverted){
+    //         synth.fallbackFeed = res.value.toHex();
+    //     }
+    // }
 
     synth.pool = pool.id;
     synth.priceUSD = getTokenPrice(token, pool);
@@ -78,7 +78,7 @@ export function handleCollateralParamsUpdated(event: CollateralParamsUpdated): v
 
     let oracleContract = PriceOracle.bind(Address.fromString(pool.oracle));
     
-    let collateral = gocCollateral(event.params.asset.toHex(), pool);
+    let collateral = gocCollateral(event.params.asset.toHex(), pool, event);
     let token = gocToken(event.params.asset.toHex());
     
     collateral.priceUSD = getTokenPrice(token, pool);
@@ -86,13 +86,13 @@ export function handleCollateralParamsUpdated(event: CollateralParamsUpdated): v
     if(!res.reverted){
         collateral.feed = res.value.toHex();
     }
-    if(pool.fallbackOracle !== ADDRESS_ZERO.toHex()){
-        let fallbackContract = PriceOracle2.bind(Address.fromString(pool.fallbackOracle));
-        let res = fallbackContract.try_getSourceOfAsset(Address.fromString(token.id));
-        if(!res.reverted){
-            collateral.fallbackFeed = res.value.toHex();
-        }
-    }
+    // if(pool.fallbackOracle !== ADDRESS_ZERO.toHex()){
+    //     let fallbackContract = PriceOracle2.bind(Address.fromString(pool.fallbackOracle));
+    //     let res = fallbackContract.try_getSourceOfAsset(Address.fromString(token.id));
+    //     if(!res.reverted){
+    //         collateral.fallbackFeed = res.value.toHex();
+    //     }
+    // }
     pool = updatePoolDebt(pool);
 
     collateral.cap = event.params.cap;
@@ -105,7 +105,7 @@ export function handleCollateralParamsUpdated(event: CollateralParamsUpdated): v
 export function handleCollateralEntered(event: CollateralEntered): void {
     let pool = gocPool(event.address.toHex());
     pool = updatePoolPrices(pool);
-    let collateral = gocCollateral(event.params.collateral.toHex(), pool);
+    let collateral = gocCollateral(event.params.collateral.toHex(), pool, event);
     let account = gocAccount(event.params.user.toHex(), event);
     let accountPosition = gocAccountPosition(event.params.user.toHex(), pool.id);
     let accountBalance = gocAccountBalance(accountPosition.id, collateral.id);
@@ -131,7 +131,7 @@ export function handleCollateralEntered(event: CollateralEntered): void {
 export function handleCollateralExited(event: CollateralExited): void {
     let pool = gocPool(event.address.toHex());
     pool = updatePoolPrices(pool);
-    let collateral = gocCollateral(event.params.collateral.toHex(), pool);
+    let collateral = gocCollateral(event.params.collateral.toHex(), pool, event);
     let account = gocAccount(event.params.user.toHex(), event);
     let accountPosition = gocAccountPosition(event.params.user.toHex(), pool.id);
     let accountBalance = gocAccountBalance(accountPosition.id, collateral.id);
@@ -154,7 +154,7 @@ export function handleCollateralExited(event: CollateralExited): void {
 export function handleDeposit(event: Deposit): void {
     let pool = gocPool(event.address.toHex());
     pool = updatePoolPrices(pool);
-    let collateral = gocCollateral(event.params.asset.toHex(), pool);
+    let collateral = gocCollateral(event.params.asset.toHex(), pool, event);
     let token = gocToken(event.params.asset.toHex());
     let account = gocAccount(event.params.user.toHex(), event);
     let accountPosition = gocAccountPosition(event.params.user.toHex(), pool.id);
@@ -179,7 +179,7 @@ export function handleDeposit(event: Deposit): void {
 export function handleWithdraw(event: Withdraw): void {
     let pool = gocPool(event.address.toHex());
     pool = updatePoolPrices(pool);
-    let collateral = gocCollateral(event.params.asset.toHex(), pool);
+    let collateral = gocCollateral(event.params.asset.toHex(), pool, event);
     let account = gocAccount(event.params.user.toHex(), event);
     let accountPosition = gocAccountPosition(event.params.user.toHex(), pool.id);
     let accountBalance = gocAccountBalance(accountPosition.id, collateral.id);
@@ -216,7 +216,7 @@ export function handlePriceOracleUpdated(event: PriceOracleUpdated): void {
     const fallbackOracleContract = PriceOracle2.bind(_fallbackOracle);
     let _synthIds = pool.synthIds;
     for (let i = 0; i < _synthIds.length; i++) {
-        let synth = gocSynth(_synthIds[i]);
+        let synth = gocSynth(_synthIds[i], pool, event);
         synth.feed = oracleContract.getSourceOfAsset(Address.fromString(synth.token)).toHex();
         if(_fallbackOracle.notEqual(ADDRESS_ZERO)){
             synth.fallbackFeed = fallbackOracleContract.getSourceOfAsset(Address.fromString(synth.token)).toHex();
@@ -234,6 +234,7 @@ export function handlePriceOracleUpdated(event: PriceOracleUpdated): void {
         }
         collateral.save();
     }
+    PriceOracle
     pool.save();
 }
 
@@ -242,7 +243,7 @@ export function handleFeeTokenUpdated(event: FeeTokenUpdated): void {
     let pool = gocPool(event.address.toHex());
     pool = updatePoolPrices(pool);
     pool = updatePoolDebt(pool);
-    let synth = gocSynth(event.params.feeToken.toHex());
+    let synth = gocSynth(event.params.feeToken.toHex(), pool, event);
     pool.feeToken = synth.id;
     synth.isFeeToken = true;
     synth.save();
@@ -333,7 +334,7 @@ function handleBurn(event: Transfer): void {
 export function handleLiquidate(event: Liquidate): void {
     let pool = gocPool(event.address.toHex());
     pool = updatePoolPrices(pool);
-    let collateral = gocCollateral(event.params.outAsset.toHex(), pool);
+    let collateral = gocCollateral(event.params.outAsset.toHex(), pool, event);
 
     let liquidatorPosition = gocAccountPosition(event.params.liquidator.toHex(), pool.id);
     let liquidatorBalance = gocAccountBalance(liquidatorPosition.id, collateral.id);

@@ -136,8 +136,6 @@ templates:
           file: ./abis/ERC20.json
         - name: Pool
           file: ./abis/Pool.json
-        - name: PriceOracle
-          file: ./abis/PriceOracle.json
         - name: PriceOracle2
           file: ./abis/PriceOracle2.json
       entities:

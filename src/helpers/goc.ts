@@ -92,8 +92,8 @@ export function gocSynth(id: string, pool: Pool|null, event: ethereum.Event): Sy
 		synth.lastPriceUpdate = 0;
 		synth.isFeeToken = false;
 
-		synth.cumulativeMinted = ZERO_BI;
-		synth.cumulativeBurned = ZERO_BI;
+		synth.cumulativeMinted = ZERO_BD;
+		synth.cumulativeBurned = ZERO_BD;
 		synth.totalSupply = ZERO_BI;
 
 		if (pool) {
@@ -275,8 +275,8 @@ export function gocSynthDayData(
 		synthDayData.synth = synth.id;
 		synthDayData.dayId = event.block.timestamp.toI32() / 86400;
 		synthDayData.totalSupply = ZERO_BI;
-		synthDayData.cumulativeMinted = ZERO_BI;
-		synthDayData.cumulativeBurned = ZERO_BI;
+		synthDayData.cumulativeMinted = ZERO_BD;
+		synthDayData.cumulativeBurned = ZERO_BD;
 		synthDayData.dailyMinted = ZERO_BI;
 		synthDayData.dailyBurned = ZERO_BI;
 		synthDayData.save();
@@ -376,7 +376,7 @@ export function gocBurn
 		burn = new Burn(id);
 		burn.account = account;
 		burn.amount = ZERO_BD;
-		burn.priceUSD = ZERO_BD;
+		// burn.priceUSD = ZERO_BD;
 		burn.synth = synth;
 	}
 	return burn as Burn

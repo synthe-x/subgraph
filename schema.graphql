@@ -115,8 +115,8 @@ type SynthDayData @entity {
   dailyBurned: BigInt!
 
   ## Total by end of the day
-  cumulativeMinted: BigInt!
-  cumulativeBurned: BigInt!
+  cumulativeMinted: BigDecimal!
+  cumulativeBurned: BigDecimal!
 
   ## Total Supply by end of the day
   totalSupply: BigInt!
@@ -135,8 +135,8 @@ type Synth @entity {
   synthDayData: [SynthDayData!]! @derivedFrom(field: "synth")
 
   ## Activity
-  cumulativeMinted: BigInt!
-  cumulativeBurned: BigInt!
+  cumulativeMinted: BigDecimal!
+  cumulativeBurned: BigDecimal!
   totalSupply: BigInt!
 
   ## Price Data
@@ -283,7 +283,7 @@ type Burn @entity {
   account: Account!
   synth: Synth!
   amount: BigDecimal!
-  priceUSD: BigDecimal!
+  # priceUSD: BigDecimal!
 }
 
 type TotalSynthsMinted @entity {

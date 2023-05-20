@@ -23,7 +23,7 @@ function handleMint(event: Transfer): void {
     synth.priceUSD = getTokenPrice(token, pool);
 
     synth.totalSupply = synth.totalSupply.plus(event.params.value);
-
+    synth.cumulativeMinted = synth.cumulativeMinted.plus(event.params.value.toBigDecimal().div(TO_ETH_BD));
     let poolDayData = gocPoolDayData(pool, event);
     let synthDayData = gocSynthDayData(synth, event);
 
@@ -104,7 +104,7 @@ function handleBurn(event: Transfer): void {
     synth.priceUSD = getTokenPrice(token, pool);
 
     synth.totalSupply = synth.totalSupply.minus(event.params.value);
-
+    synth.cumulativeBurned =synth.cumulativeBurned.plus(event.params.value.toBigDecimal().div(TO_ETH_BD));
     let poolDayData = gocPoolDayData(pool, event);
     let synthDayData = gocSynthDayData(synth, event);
 
@@ -130,7 +130,7 @@ function handleBurn(event: Transfer): void {
 
     let burn = gocBurn(event, synth.id, event.params.from.toHex());
     burn.amount = event.params.value.toBigDecimal().div(TO_ETH_BD);
-    burn.priceUSD = synth.priceUSD;
+    // burn.priceUSD = synth.priceUSD;
 
     let account = gocAccount(event.params.from.toHex(), event);
     let newPoint = event.params.value.toBigDecimal().div(TO_ETH_BD).times(synth.priceUSD).times(rate(event.block.timestamp.toBigDecimal()));
